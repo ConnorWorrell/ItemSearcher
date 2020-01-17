@@ -1,0 +1,16 @@
+DataBase/ImageCache/
+DataBase/Searches/
+Database/CallCount
+Database/DisplayData.txt
+Database/LinkToAvgPrice
+Database/LinkToShipping
+Database/LinkToUPC
+Database/PasswordsAndSuch
+Drivers/chromedriver.exe
+LOGS/Calls/
+LOGS/Mail/
+LOGS/Runtime/
+LOGS/Errors
+.idea/
+**/__pycache__/
+DataBase/Searching
