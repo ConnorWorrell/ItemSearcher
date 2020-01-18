@@ -456,14 +456,9 @@ def Statup(InputSet):
 def PreloadImages(InputSet):
     ImageURLs = []
     for Item in InputSet: # For every item
-        for i in range(10): # there are 10 attempts to
-            try:
-                ImageURLs.append(Item[4]) # load the main item image
-                for Item2 in Item[6]:
-                    ImageURLs.append(Item2[1]) # and all of the comparison images
-                break # if successfull exit
-            except:
-                pass
+        ImageURLs.append(Item[4]) # load the main item image
+        for Item2 in Item[6]:
+            ImageURLs.append(Item2[1]) # and all of the comparison images
 
     print('loaded')
     LoadImages(ImageURLs,16) #Load images using 16 threads
