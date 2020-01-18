@@ -6,6 +6,10 @@ import dataset
 import time
 import sys
 
+####################################################
+### Data Base Tests
+###   Tests 3 databases agaisnds each other time wise in random single additions to databases
+
 ItemCount = 5000
 
 def TestTinyDB():
