@@ -308,9 +308,9 @@ def PackNextImage():
         i.destroy()
     ImageWidgets = []
 
-    global Length #Load next window, wrapping Current Viewing to Length (Number of Items in display list)
+    global MaxCount #Load next window, wrapping Current Viewing to MaxCount (Number of Items in display list)
     global Input
-    PackImageFromURL(Input[CurrentViewing%Length])
+    PackImageFromURL(Input[CurrentViewing%MaxCount])
 
 # Pack Last Image is bound to the last button in the window and destroys everything in the current window and loads the
 #  previous window
@@ -319,9 +319,9 @@ def PackLastImage():
     global CurrentViewing
     CurrentViewing = CurrentViewing - 1 # Index of last window
 
-    if(CurrentViewing < 0): # If index is less than 0 wrap around to highest value (Length - 1)
-        global Length
-        CurrentViewing = Length-1
+    if(CurrentViewing < 0): # If index is less than 0 wrap around to highest value (MaxCount - 1)
+        global MaxCount
+        CurrentViewing = MaxCount-1
 
     global ImageWidgets # Remove everything from current window
     for i in ImageWidgets:
@@ -329,7 +329,7 @@ def PackLastImage():
     ImageWidgets = []
 
     global Input # Place new window
-    PackImageFromURL(Input[CurrentViewing%Length])
+    PackImageFromURL(Input[CurrentViewing%MaxCount])
 
 # Data bases that are used for chached searches
 from tinydb import TinyDB
@@ -404,10 +404,6 @@ def Statup(InputSet):
     MainWindow = Tk()
     MainWindow.state("zoomed")
     app = Window(MainWindow)
-
-    # Define length, seems to be identical to MaxCount object
-    global Length
-    Length = len(InputSet)
 
     # Define Input
     global Input
