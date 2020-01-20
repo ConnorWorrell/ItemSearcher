@@ -396,7 +396,7 @@ def Search(Title):
         p = p + 1
 
 # Startup generates main window
-def Statup(InputSet):
+def Startup(InputSet):
     global MaxCount
     MaxCount = len(InputSet) # Max count is the number of items to display
 
@@ -482,6 +482,6 @@ def LoadImages(ImageURLsArray,ThreadCount=16):
 
 
 
-#Statup(TestImageURL)
+#Startup(TestImageURL)
 #PreloadImages(TestImageURL)
 #Search("dvd neon genesis evangelion")

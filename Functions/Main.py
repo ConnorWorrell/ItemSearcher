@@ -333,4 +333,4 @@ if __name__ == "__main__":
     #Disp.PreloadImagesThreading(Display)
 
     print("Starting Display")
-    Disp.Statup(Display)
+    Disp.Startup(Display)
