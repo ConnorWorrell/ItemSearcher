@@ -4,30 +4,70 @@ import requests
 from io import BytesIO
 import webbrowser
 import os
-
-####################################################
-# Display
-#   Display covers all Tkninter based operations, command Startup generates main window and starts necessary systems.
-
-
-#Grab position of display data file
-#All data that is used to display things is stored in the display data file
-#Currently this is only used to display data from the last run if the Tkinter window is closed
-DisplayDataPosition = str(os.path.dirname(os.path.dirname(__file__))) + '/DataBase/DisplayData.txt'
 import json
+import Get
+from tinydb import TinyDB
+
+########################################################################################################################
+# Display.py
+#
+# Display covers all Tkninter based operations, command Startup generates main window and starts necessary systems
+#
+# VerticalScrolledFrame is a custom class to make a scrollable frame for images
+# OpenInBrowzer("URL") opens a webpage in the default browser
+# PackText("Text",(int)X,(int)Y) places text in a position in the default Tk window
+# GetImageData("ImageURL",(int)MaxHeight,(int)MaxWidth) returns the data for an image from the address that fits within
+# the bounds
+# PackImage("ImageURL",(int)X,(int)Y,(int)MaxWidth,(int)MaxHeight) places an image at the position in the main window
+# SimplifyString("Str") returns an ascii only version of the input string
+# PackImageFromURL("Input") Places text, main display image, and comparison items in the main window
+# PackNextImage() Switches from the currently viewed item to the next item to be viewed
+# PackLastImage() Switches from the currently viewed item to the previously viewed item
+# Search("SearchText") Searches ebay for items matching SearchText and adds the found items to the scrollable frame
+# Startup(InputSet) Initializes the Tk window and begins placing objects
+# PreloadImages(InputSet) Preload the images from urls in Input Set, (MultiThreaded)
+# GetMultiImageData(["ImageURLArray"]) Preload image data for urls in Image URL Array, called by LoadImages()
+# LoadImages(["ImageURLArray"],(int)ThreadCount) Preload image data from ImageURL Array using multiple threads
+#
+# Input Set Example:
+# InputSet = [['Title', 'UPC', 'Price', AvgPrice, 'ImageURL', 'PageURL',
+#               [['ComparisonPage1', 'ComparisonImage1', 'ComparisonTitle1', 'ComparisonPrice1'],
+#               ... ,
+#               [['ComparisonPage100', 'ComparisonImage100', 'ComparisonTitle100', 'ComparisonPrice100']]]
+#            ]]
+#
+########################################################################################################################
+
+# Initialization
+
+# If the Image Cache directory dosen't exist then create it
+PhotoCacheDirectory = str(os.path.dirname(os.path.dirname(__file__))) + '/DataBase/ImageCache'
+if not os.path.exists(PhotoCacheDirectory):
+    os.makedirs(PhotoCacheDirectory)
+
+# Grab position of display data file
+# All data that is used to display things is stored in the display data file
+# Currently this is only used to display data from the last run if the Tkinter window is closed
+DisplayDataPosition = str(os.path.dirname(os.path.dirname(__file__))) + '/DataBase/DisplayData.txt'
 try:
     with open(DisplayDataPosition, 'r') as in_file: #Place display data into TestImageURL
         TestImageURL = json.load(in_file)
 except:
     pass
-#TestImageURL = [['Ghost in the Shell (DVD, 1998, Original Japanese Dubbed and Subtitled English)', '0780063552929', '1.25', 7.25, 'https://i.ebayimg.com/00/s/MTYwMFgxMjAw/z/7AcAAOSwqp5eC3bc/$_3.JPG', 'https://www.ebay.com/itm/Ghost-Shell-DVD-1998-Original-Japanese-Dubbed-and-Subtitled-English-/312920734188', [['https://www.ebay.com/itm/Ghost-Shell-DVD-1998-Original-/164016988118', 'https://i.ebayimg.com/00/s/MTYwMFgxMjAw/z/gGAAAOSwYKBeD42b/$_3.JPG', '☆ Ghost in the Shell (DVD, 1998, Original ) ☆ ', '11.55']]]]
 
-CurrentViewing = 0 #Currently viewing is the current object position that is being displayed in Display Data
+CurrentViewing = 0  # Currently viewing is the current object position that is being displayed in Display Data
 ImageWidgets = []
 global MainWindow
 
-#Vertically scrolled frame is a an edited version of VerticalScrolledFrame from online, if the mouse hovers over the
-#  frame then you can use the scroll wheel to scroll.
+# Data bases that are used for cached searches
+AvgPriceDataBase1 = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/DataBase/LinkToAvgPrice")
+ErrorsDataBase1 = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/Logs/Errors")
+UPCDataBase1 = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/DataBase/LinkToUPC")
+
+MaxCount = 0  # Contains the total item pages that are displayed
+
+# Vertically scrolled frame is a an edited version of VerticalScrolledFrame from online, if the mouse hovers over the
+# frame then you can use the scroll wheel to scroll.
 class VerticalScrolledFrame(Frame):
     """A pure Tkinter scrollable frame that actually works!
     * Use the 'interior' attribute to place widgets inside the scrollable frame
@@ -104,11 +144,13 @@ class VerticalScrolledFrame(Frame):
         canvas.bind('<Enter>', _bound_to_mousewheel)
         canvas.bind('<Leave>', _unbound_to_mousewheel)
 
-#Open In Browzer opens the URL in the default web browser on the system
+
+# Open In Browzer opens the URL in the default web browser on the system
 def OpenInBrowzer(URL):
     webbrowser.open_new(URL)
 
-#Pack Text places text at a given position in the Tkinter window
+
+# Pack Text places text at a given position in the Tkinter window
 def PackText(Text,X,Y):
     global MainWindow
     var = StringVar()
@@ -121,15 +163,13 @@ def PackText(Text,X,Y):
     ImageWidgets.append(text)
     text.place(x=X, y=Y)
 
+
 # Get Image data checks to see if the image is stored locally, if it is not then it grabs it from the internet
 #  and stores it locally.
 #
 #  Potential Improvements: cache a list of all images instead of checking each time.
 #  Other: Maby save image at full scale or some larger scale so that if a low res image is requested once and then
 #         a high res is requested the high res is not the low res upscaled.
-PhotoCacheDirectory = str(os.path.dirname(os.path.dirname(__file__))) + '/DataBase/ImageCache'
-if not os.path.exists(PhotoCacheDirectory):
-    os.makedirs(PhotoCacheDirectory)
 def GetImageData(ImageURL,MaxHeight=700,MaxWidth=500):
 
     ChacheURL = ImageURL[0:len(ImageURL)] #duplicate ImageURL string
@@ -171,6 +211,7 @@ def GetImageData(ImageURL,MaxHeight=700,MaxWidth=500):
 
     return image
 
+
 # Pack Image adds an image to the main window at the position X,Y with max dimentions (one of the two will end up smaller)
 def PackImage(ImageURL,X,Y,MaxWidth=500,MaxHeight=700):
 
@@ -186,21 +227,17 @@ def PackImage(ImageURL,X,Y,MaxWidth=500,MaxHeight=700):
 
     global ImageWidgets
     ImageWidgets.append(img) # Add image to list so it can be removed when moving onto next object
-#
-# def myfunction(event,canvas):
-#     canvas.configure(scrollregion=canvas.bbox("all"),width=200,height=200)
-#
+
 
 # Simplify String removes all non ascii characters since Tkinter is unable to display these
 def SimplifyString(Input):
     return Input.encode('ascii', 'ignore').decode('ascii')
 
-MaxCount = 0 # Contains the total item pages that are displayed
 
-#Pack Image From URL places all of the images, text and links that are seen in the main tk window.
+# Pack Image From URL places all of the images, text and links that are seen in the main tk window.
 def PackImageFromURL(Input):
 
-    #Grab image data from input is formated as such:
+    # Grab image data from input is formated as such:
     # [Name,SearchName,Price,AvgPrice,ImageURL,PageURL,[[SearchURL1,SearchImage1,Name1,Price1],[SearchURL2,SearchImage2,Name2,Price2],...]]
     ItemName = Input[0]
     SearchName = Input[1]
@@ -210,21 +247,21 @@ def PackImageFromURL(Input):
     PageURL = Input[5]
     CompareAuctions = Input[6]
 
-    #Define Max Image Dimentions
+    # Define Max Image Dimentions
     MaxWidth = 500
     MaxHeight = 700
 
-    #Place main big image on the left side
+    # Place main big image on the left side
     PackImage(ImageURL, 10, 150, MaxWidth, MaxHeight)
 
-    #Place text for Name, SearchName, Price and Avg Price for main object
+    # Place text for Name, SearchName, Price and Avg Price for main object
     try:
         PackText(SimplifyString(ItemName),10,25)
         PackText(SimplifyString(SearchName),10,85)
         PackText(Price,MaxWidth, 25)
         PackText(AvgPrice,MaxWidth, 55)
     except:
-        print([ItemName,SearchName,Price,AvgPrice]) #If failed to place title then print out title data
+        print([ItemName,SearchName,Price,AvgPrice]) # If failed to place title then print out title data
         pass
 
     global MaxCount
@@ -237,21 +274,10 @@ def PackImageFromURL(Input):
     link1.place(x=10,y=115)
     link1.bind("<Button-1>", lambda e: OpenInBrowzer(PageURL))
 
-    #Add scrollable frame to the right side
+    # Add scrollable frame to the right side
     frame1 = VerticalScrolledFrame(MainWindow,height=750,width=500, bd=2, relief=SUNKEN)
     frame1.place(x=600,y=50)
     ImageWidgets.append(frame1)
-
-    # def Pack(Text):
-    #     var = StringVar()
-    #     text = Label(frame1.interior, textvariable=var)
-    #     text.config(font=("Comic Sans MS", 15))
-    #     text.config()
-    #     var.set(Text)
-    #
-    #     ImageWidgets.append(text)
-    #
-    #     text.pack()
 
     Links = []
 
@@ -259,16 +285,16 @@ def PackImageFromURL(Input):
     def AddLinkToText(PositionInLinks,URL):
         Links[PositionInLinks].bind("<Button-1>", lambda e: OpenInBrowzer(URL))
 
-    photorow=0 # Contains the current photo row
-    rowCount = 5 # Contatins text rows per photo row
+    photorow=0  # Contains the current photo row
+    rowCount = 5  # Contains text rows per photo row
     for i in CompareAuctions:
 
-        if(i[1]!=""): # If an image link is given then place image
+        if(i[1]!=""):  # If an image link is given then place image
             ImageData = GetImageData(i[1], 500, 500) # Grab image data
 
-            if ImageData == None: pass # If unable to grab image data then skip placing image
+            if ImageData == None: pass  # If unable to grab image data then skip placing image
 
-            #Place image in scrolling frame
+            # Place image in scrolling frame
             render = ImageTk.PhotoImage(ImageData)
             img = Label(frame1.interior,image=render)
             img.image = render
@@ -278,7 +304,7 @@ def PackImageFromURL(Input):
             img.grid(row=photorow*rowCount, column=0,rowspan=5)
 
 
-        WrapLength = 400 #Wrap length for text and links
+        WrapLength = 400  # Wrap length for text and links
 
         # Place link for image to right of image
         link1 = Label(frame1.interior, text=SimplifyString(str(i[2])), fg="blue", cursor="hand2",wraplength=WrapLength)
@@ -288,12 +314,12 @@ def PackImageFromURL(Input):
         Links.append(link1)
         AddLinkToText(photorow,i[0])
 
-        #Place Text for image below link
+        # Place Text for image below link
         link1 = Label(frame1.interior, text=str(i[3]), wraplength=WrapLength)
         link1.config(font=("Comic Sans MS", 15))
         link1.grid(row=photorow * rowCount+1, column=1)
 
-        photorow = photorow + 1 # Move to next image
+        photorow = photorow + 1  # Move to next image
 
 
 # Pack Next Image is bound to the next button in the window and destroyed everything in the current window and loads
@@ -311,6 +337,7 @@ def PackNextImage():
     global MaxCount #Load next window, wrapping Current Viewing to MaxCount (Number of Items in display list)
     global Input
     PackImageFromURL(Input[CurrentViewing%MaxCount])
+
 
 # Pack Last Image is bound to the last button in the window and destroys everything in the current window and loads the
 #  previous window
@@ -331,14 +358,8 @@ def PackLastImage():
     global Input # Place new window
     PackImageFromURL(Input[CurrentViewing%MaxCount])
 
-# Data bases that are used for chached searches
-from tinydb import TinyDB
-AvgPriceDataBase1 = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/DataBase/LinkToAvgPrice")
-ErrorsDataBase1 = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/Logs/Errors")
-UPCDataBase1 = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/DataBase/LinkToUPC")
 
 #Search is activated when pressing the search button and generates and places items that come up in search
-import Get
 def Search(Title):
     # Search from cached or web
     Prices, FinalSearchName, SearchedItems = Get.AvgPrice(None,Title,0,0,Title,0,AvgPriceDataBase1,ErrorsDataBase1,UPCDataBase1)
@@ -389,6 +410,7 @@ def Search(Title):
         link1.grid(row=p * rowCount + 1, column=1)
 
         p = p + 1
+
 
 # Startup generates main window
 def Startup(InputSet):
@@ -448,6 +470,7 @@ def Startup(InputSet):
     # Startup Main Window
     MainWindow.mainloop()
 
+
 #Pre load Images loads images into cache before thay are needed
 def PreloadImages(InputSet):
     ImageURLs = []
@@ -458,6 +481,7 @@ def PreloadImages(InputSet):
 
     print('loaded')
     LoadImages(ImageURLs,16) #Load images using 16 threads
+
 
 def GetMultiImageData(MultiImageArray):
     # Preload images for all images in Multi Image Array
@@ -474,9 +498,3 @@ def LoadImages(ImageURLsArray,ThreadCount=16):
     ItemsPerGroup = 3 #Items per group is the number of items that each thread is given to load before it is given a new set of items
     futures = [executor.submit(GetMultiImageData, group)for group in grouper(ItemsPerGroup, ImageURLsArray)]
     concurrent.futures.wait(futures)
-
-
-
-#Startup(TestImageURL)
-#PreloadImages(TestImageURL)
-#Search("dvd neon genesis evangelion")
