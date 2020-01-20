@@ -1,13 +1,8 @@
-import gui as Tkinter
 from gui import *
-import urllib.parse
 from PIL import Image, ImageTk
 import requests
-import random
 from io import BytesIO
 import webbrowser
-#from ttk import *
-import time
 import os
 
 ####################################################

@@ -1,7 +1,5 @@
 import os
 import time
-#os.path.dirname(os.path.dirname(__file__))
-
 
 def New():
     global LogPosition

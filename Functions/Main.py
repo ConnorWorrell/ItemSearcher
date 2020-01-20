@@ -5,19 +5,10 @@ import Get
 import Mail
 import Display as Disp
 import os
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-import multitasking
-import signal
-from tinydb import TinyDB, Query
+from tinydb import TinyDB
 import time
-import unicodedata
 import sys
 import datetime
-import math
 import statistics
 import json
 

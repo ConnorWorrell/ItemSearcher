@@ -1,10 +1,9 @@
 import Ebay
 import Logs
-from tinydb import TinyDB, Query
+from tinydb import TinyDB
 import os
 import time
 import sys
-from datetime import  datetime
 
 def GenerateSearch(SearchString,StoppingPrice,AuctionsOnly):
 
