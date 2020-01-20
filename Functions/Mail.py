@@ -8,8 +8,6 @@ PasswordsFile = str(os.path.dirname(os.path.dirname(__file__))) + '/DataBase/Pas
 with open(PasswordsFile, 'r') as in_file:
     Passwords = json.load(in_file)
 
-#print(Passwords)
-
 smtp_server = Passwords['smtp_server'] #eg: smtp.gmail.com
 sender_email = Passwords['sender_email']
 receiver_email = Passwords['receiver_email']

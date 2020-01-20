@@ -56,9 +56,6 @@ def AddToGUI(Name,SearchName,Price,AvgPrice,ImageURL,PageURL,ComparisonData):
 def TotalSearch(SearchingTitle,SearchNonAuctions):
     global Output
     global OutputSpecific
-    driver = None
-    #print(SearchingTitle)
-    PreviousTime = time.time()
 
     DBName = str(max([float(s.replace('.json', '')) for s in
                       os.listdir(str(os.path.dirname(os.path.dirname(__file__))) + '/DataBase/Searches/')]))
@@ -72,9 +69,6 @@ def TotalSearch(SearchingTitle,SearchNonAuctions):
             AuctionSearch = 0
 
         SearchList = Search.GenerateSearch(SearchingTitle, StoppingPrice, AuctionSearch)
-        #print(SearchList)
-
-
 
         Search.Search(SearchingTitle, AuctionSearch, SearchList,dbSearches)
 
@@ -100,10 +94,7 @@ def Analisis(ItemsList):
     else:
         CallCount = MaxCalls
 
-    #print("Anlizing " + str(TotalCount))
-    CycleTime = 10
     LastCycle = time.time()
-    ExpectedTimeRemaining = 0
     RecordedCycleTime = []
     for Item in range(CallCount):
         CycleTime = time.time() - LastCycle
@@ -145,14 +136,9 @@ def Analisis(ItemsList):
         dt = datetime.datetime(Year, Month, Dayy, Hour, Minute, 0)
         UnixEndingStamp = time.mktime(dt.timetuple())
 
-
-        #print(str(UnixEndingStamp) + " " + str(time.time()) + " " + str(ItemURL))
         if(float(UnixEndingStamp) < time.time()):
 
             print('Auction ended already for: ' + str(ItemURL))
-
-        #print(UnixEndingStamp)
-        #print(ItemPrice)
 
         if ItemShippingType == 'Calculated' or ItemShippingType == 'CalculatedDomesticFlatInternational' or ItemShippingType == 'FreePickup':
             ItemShipping,driver = Get.Shipping(ItemURL,driver,ShippingDataBase,WebDriverPath)
@@ -160,27 +146,20 @@ def Analisis(ItemsList):
             try:
                 ItemShipping = ItemsList[Item]['shippingInfo'][0]['shippingServiceCost'][0]['__value__']
             except:
-                #print("Errors " + str(ItemsList[Item]))
                 continue
 
-        #Prices = 0
         global Lot
         if('lot' in ItemTitle.lower()):
 
             Info = [float(ItemPrice) + float(ItemShipping), str(ItemURL),str(False)]
-            #print("Lot: " + str(Info))
 
             if(Info not in Lot and UnixEndingStamp < time.time()+EndingSoon):
-                #print(Info)
-                #print(Lot)
                 Lot.append(Info)
                 Logs.Write("Found Lot Item: " + str(Info))
                 AddToGUI(ItemName, '', str(float(ItemPrice)+float(ItemShipping)), '0', ItemPicture, ItemURL, [])
             continue
         else:
             Prices,FinalSearchName,SearchedItems = Get.AvgPrice(ItemURL,ItemTitle,OutOfCalls,float(ItemPrice) + float(ItemShipping),ItemSearchKeywords,float(UnixEndingStamp),AvgPriceDataBase,ErrorsDataBase,UPCDataBase)
-
-
 
         print(Prices)
 
@@ -194,16 +173,12 @@ def Analisis(ItemsList):
 
         if(('collection' in ItemTitle.lower() or 'collection' in FinalSearchName or 'Multi Item Auction Found' == FinalSearchName) and Prices <= 0):
             Info = [float(ItemPrice) + float(ItemShipping), str(ItemURL), str('Multi Item Auction Found' == FinalSearchName)]
-            # print("Lot: " + str(Info))
 
             if (Info not in Lot and UnixEndingStamp < time.time() + EndingSoon):
-                # print(Info)
-                # print(Lot)
                 Lot.append(Info)
                 Logs.Write("Found Lot Item: " + str(Info))
                 AddToGUI(ItemName, FinalSearchName, str(float(ItemPrice)+float(ItemShipping)), '0', ItemPicture, ItemURL, [])
             continue
-        #print(Prices)
 
         if(Prices == -2): #Out of calls
             OutOfCalls = 1
@@ -216,7 +191,6 @@ def Analisis(ItemsList):
             global SpecificProductDiscount
             SearchingForDiscount = SpecificProductDiscount
             if (float(Prices) * SearchingForDiscount > float(ItemPrice) + float(ItemShipping)) and UnixEndingStamp < time.time()+EndingSoon and ItemURL not in [ItemInfo[2] for ItemInfo in OutputSpecific]:
-                #print(str([float(ItemPrice) + float(ItemShipping) , float(Prices) , str(ItemURL)]))
                 OutputSpecific.append([float(ItemPrice) + float(ItemShipping) , float(Prices) , str(ItemURL), str(FinalSearchName), str(SearchingForDiscount), str(ItemSearchKeywords)])
                 AddToGUI(ItemName, FinalSearchName, str(float(ItemPrice)+float(ItemShipping)), Prices, ItemPicture, ItemURL, SearchedItems)
                 Logs.Write("Found Discounted Specific Search Item" + str([float(ItemPrice) + float(ItemShipping) , float(Prices) , str(ItemURL), str(FinalSearchName), str(ItemSearchKeywords)]))
@@ -224,12 +198,10 @@ def Analisis(ItemsList):
             SearchingForDiscount = Discount
 
             if (float(Prices) * SearchingForDiscount > float(ItemPrice) + float(ItemShipping)) and UnixEndingStamp < time.time()+EndingSoon and ItemURL not in [ItemInfo[2] for ItemInfo in Output]:
-                #print(str([float(ItemPrice) + float(ItemShipping) , float(Prices) , str(ItemURL)]))
                 Output.append([float(ItemPrice) + float(ItemShipping) , float(Prices) , str(ItemURL), str(FinalSearchName), str(SearchingForDiscount), str(ItemSearchKeywords)])
                 AddToGUI(ItemName, FinalSearchName, str(float(ItemPrice)+float(ItemShipping)), Prices, ItemPicture, ItemURL, SearchedItems)
                 Logs.Write("Found Discounted Item" + str([float(ItemPrice) + float(ItemShipping) , float(Prices) , str(ItemURL), str(FinalSearchName), str(ItemSearchKeywords)]))
 
-        #print(str(ItemPrice) + " " + str(ItemShipping) + " " + str(Prices) + " " + str(ItemShippingType))
     try:
         driver.Quit()
     except:
@@ -264,10 +236,6 @@ if __name__ == "__main__":
 
     dbErrors = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/Logs/Errors")
 
-    # try:
-
-    #print(dbErrors.table().all())
-
     dbErrorsTable = dbErrors.table().all()
 
     for a in range(len(dbErrorsTable)):
@@ -280,11 +248,6 @@ if __name__ == "__main__":
         if(dbErrorsTable[a]["EndTime"] < time.time()+EndingSoon and dbErrorsTable[a]["EndTime"] > time.time()):# + 60*60*17):
             print(dbErrorsTable[a]["EndTime"])
             Errors.append([dbErrorsTable[a]['Price'],str(dbErrorsTable[a]['Error']) + " " + str(dbErrorsTable[a]['ItemLink']) + " " + str([dbErrorsTable[a]['ItemTitle']]) + " " + str([dbErrorsTable[a]['CallText']]) + str(dbErrorsTable[a]["EndTime"]) + " | " + str(dbErrorsTable[a]['SearchKeywords'])])
-
-    #Errors = [[dbErrorsTable[a]['Price'],str(dbErrorsTable[a]['Error']) + " " + str(dbErrorsTable[a]['ItemLink']) + " " + str([dbErrorsTable[a]['ItemTitle']]) + " " + str([dbErrorsTable[a]['CallText']]) + " | " + str(dbErrorsTable[a]['SearchKeywords'])] for a in range(len(dbErrorsTable))]
-    # except:
-    #     Errors = [str(dbErrors.table().all()[a]['Error']) + " " + str(dbErrors.table().all()[a]['Link']) for a in range(len(dbErrors.table().all()))]
-    #print(Errors)
 
     for i in OutputSpecific:
         Output.append(i)
@@ -320,8 +283,6 @@ if __name__ == "__main__":
     DisplayDataPosition = str(os.path.dirname(os.path.dirname(__file__))) + '/DataBase/DisplayData.txt'
     with open(DisplayDataPosition, 'w') as out_file:
         json.dump(Display, out_file)
-
-    #Disp.PreloadImagesThreading(Display)
 
     print("Starting Display")
     Disp.Startup(Display)

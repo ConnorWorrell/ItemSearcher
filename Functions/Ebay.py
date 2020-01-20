@@ -31,37 +31,22 @@ def Call(Keywords,AuctionOnly,Page,MaxPrice,MinPrice,Present):
     Search = Query()
 
     try:
-        CurrentCallCount = dbCallCount.table("_default").all()[len(dbCallCount.table("_default").all())-1]['Calls']
         CallTime = dbCallCount.table("_default").all()[len(dbCallCount.table("_default").all())-1]['Time']
     except:
         CurrentTime = int(time.mktime(datetime.now().timetuple()))
         dbCallCount.insert({'Calls': 0, 'Time': CurrentTime})
-        CurrentCallCount = 0
         CallTime = CurrentTime
 
-    #print(CallTime)
     CurrentDateTime = int(time.mktime(datetime.now().timetuple()))
     NewCallingPerioud = int(time.mktime(datetime.utcfromtimestamp(int(CallTime) + 60*60*16 -60*5).replace(hour = 1).replace(minute=5).replace(second=0).replace(microsecond=0).timetuple()))
-
-    # print(CallTime)
-    # print(CurrentDateTime)
-    # print(NewCallingPerioud)
-
-    # print(datetime.now())
-    # print(datetime.utcfromtimestamp(int(CallTime) + 60*60*16 -60*5).replace(hour = 8).replace(minute=5).replace(second=0).replace(microsecond=0))
 
     if(CurrentDateTime > NewCallingPerioud):
         print("New Time Region")
         CurrentTime = int(time.mktime(datetime.now().timetuple()))
         dbCallCount.insert({'Calls': 0, 'Time': CurrentTime})
-        CurrentCallCount = 0
         CallTime = CurrentTime
-    # else:
-    #     print("Not New  TimeStamp")
 
     # Note calls reset 1am mtd, or 8am utc
-
-    # print(CurrentCallCount)
 
     if Present == 1:
         APICALL = 'https://svcs.ebay.com/services/search/FindingService/v1?OPERATION-NAME=findItemsByKeywords' \
@@ -106,7 +91,6 @@ def Call(Keywords,AuctionOnly,Page,MaxPrice,MinPrice,Present):
                 continue
 
             ReportSaveLocation = str(os.path.dirname(os.path.dirname(__file__))) + '/LOGS/Calls/' + CallFolder + '/' + str(time.time()) + ".txt"
-            #print(ReportSaveLocation)
             with open(ReportSaveLocation, 'w') as APIResponcefile:
                 json.dump(report.json(), APIResponcefile)
             APIResponcefile.close()
@@ -116,7 +100,6 @@ def Call(Keywords,AuctionOnly,Page,MaxPrice,MinPrice,Present):
                 MaxPrice) + " at " + str(ReportSaveLocation))
 
             dbCallCount.update(increment("Calls"), Search.Time == CallTime)
-            #dbCallCount.update({'Calls': CurrentCallCount + 1, 'Time': CallTime})
 
             return(report.json())
         except:
@@ -128,5 +111,3 @@ def Call(Keywords,AuctionOnly,Page,MaxPrice,MinPrice,Present):
         AuctionOnly) + " Present: " + str(Present) + " Between " + str(MinPrice) + " and " + str(
         MaxPrice))
     return None
-
-#Call("breaking bad dvd",1,1,10000,0,1)

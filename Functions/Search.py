@@ -43,7 +43,7 @@ def GenerateSearch(SearchString,StoppingPrice,AuctionsOnly):
         else:
             CheckIndex = CheckIndex + 1
 
-        if (CheckIndex >= len(SearchPriceChain)):# and CheckResponceLength < 100):
+        if (CheckIndex >= len(SearchPriceChain)):
             break
 
     Logs.Write("Generate Search Index For: " + SearchString + " Returned: " + str(SearchPriceChain))
@@ -61,15 +61,6 @@ def Search(Keywords,AuctionOnly,SearchIndex,dbSearches):
     Data = {}
 
     ItemCount = 0
-    # DBName = str(max([float(s.replace('.json', '')) for s in os.listdir(str(os.path.dirname(os.path.dirname(__file__))) + '/DataBase/Searches/')]))
-    # dbSearches = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/DataBase/Searches/" + DBName)
-
-
-
-
-    PreviousTime = time.time()
-    EndTime = time.time()
-    StartTime = time.time()
 
     for SearchPriceIndex in range(len(SearchIndex) - 1):
 
@@ -78,14 +69,7 @@ def Search(Keywords,AuctionOnly,SearchIndex,dbSearches):
         SearchPriceBottom = SearchIndex[SearchPriceIndex]
 
         Inserted = []
-        StartTime = time.time()
         for PageNumber in range(100):
-            # LoopTime = time.time() - PreviousTime
-            # PreviousTime = time.time()
-            # if(LoopTime != 0):
-            #     print((EndTime-StartTime)/LoopTime)
-
-            #print(PageNumber)
 
             printing = "\rSearching for: %s" % str(Keywords) + " between: %s" % str(SearchPriceTop) + " %s" % str(SearchPriceBottom) + " page: %d" % PageNumber
             while (len(printing) < 70):
@@ -98,27 +82,17 @@ def Search(Keywords,AuctionOnly,SearchIndex,dbSearches):
 
             EbayResponce = Ebay.Call(Keywords, AuctionOnly, PageNumber, SearchPriceTop, SearchPriceBottom,1)
 
-
-
-            #print("sEARCHcOMPLETE")
-
             if EbayResponce == None:
                 print("Ebay Responce Failure")
                 break
 
             Count = int(EbayResponce["findItemsByKeywordsResponse"][0]["searchResult"][0]["@count"])
 
-            #print(str(Count) + 'Count \n')
-
             if(Count > 0):
                 EbayResponce = EbayResponce["findItemsByKeywordsResponse"][0]["searchResult"][0]["item"]
             else:
                 print(" blank page recieved check this to see if zero update like 80")
-                #print(int(EbayResponce["findItemsByKeywordsResponse"][0]["searchResult"][0]["@count"]))
                 break
-
-            #print(EbayResponce)
-
 
             for Item in EbayResponce:
                 if '?var' in Item["viewItemURL"][0]:
@@ -129,17 +103,10 @@ def Search(Keywords,AuctionOnly,SearchIndex,dbSearches):
                 Inserted.append(Item)
 
                 ItemCount = ItemCount + 1
-                #print(ItemCount)
-
-            #print("multiple")
 
             if (Count < 100):
                 break
 
         dbSearches.insert_multiple(Inserted)
-        EndTime = time.time()
-
-
-    #dbSearches.close()
 
     return Data

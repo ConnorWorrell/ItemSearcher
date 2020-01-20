@@ -16,10 +16,8 @@ def UPC(ItemLink,UPCDataBase):
     Retries = 5
     SleepTime = 1
 
-
     ItemLink = ItemLink.split('?')[0]
 
-    #db = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/DataBase/LinkToUPC")
     db = UPCDataBase
     User = Query()
 
@@ -74,7 +72,6 @@ def Shipping(ItemLink,driver,ShippingDataBase,WebDriverPath):
 
     ItemLink = ItemLink.split('?')[0]
 
-    #db = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/DataBase/LinkToShipping")
     db = ShippingDataBase
     User = Query()
 
@@ -84,9 +81,6 @@ def Shipping(ItemLink,driver,ShippingDataBase,WebDriverPath):
     if (Search != []):
         Logs.Write("Get Shipping From Item Link: " + ItemLink + " Cache: " + str(Search[0]['Shipping']))
         return Search[0]['Shipping'],driver
-
-    #WebDriverPath = os.path.dirname(os.path.dirname(__file__)) + '/Drivers/chromedriver.exe'
-    #driver = webdriver.Chrome(executable_path=WebDriverPath)
 
     time.sleep(
         random.uniform(1, 2) ** 2)
@@ -201,14 +195,9 @@ def Shipping(ItemLink,driver,ShippingDataBase,WebDriverPath):
     db.insert({'Link': ItemLink, 'Shipping': -1, 'Raw': None, "Time": time.time()})
     return -1,driver
 
-#print(Shipping('https://www.ebay.com/itm/Mounted-Large-Brass-American-Eagle-Almost-6-pounds-18-inches-high-Unique-/254444583109',None))
-
 def AvgPrice(ItemLink,Title,OutOfCalls,Price,ErrorAppendSearchKeywords,EndTime,AVGPriceDB,ErrorsDB,UPCDataBase):
     CurrentErrorRevision = 4
     Recalling = None
-
-    #db = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/DataBase/LinkToAvgPrice")
-    #dbErrors = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/Logs/Errors")
 
     db = AVGPriceDB
     dbErrors = ErrorsDB
@@ -221,33 +210,22 @@ def AvgPrice(ItemLink,Title,OutOfCalls,Price,ErrorAppendSearchKeywords,EndTime,A
     else:
         UPCCode = UPC(ItemLink,UPCDataBase)
         TitleSearch = TitleToSearch(Title,URL=ItemLink)
-    #print(UPCCode)
-
-
 
     if (UPCCode != -1):
         CallText = UPCCode
-        #print('hi')
     else:
         CallText = TitleSearch
 
     if(TitleSearch == True):
-        print('hi7')
         return -1,"Multi Item Auction Found",[]
 
     Search = db.search(User.CallText == CallText)
-    # print(Search)
-    # Search1 = db.search(User.Link == CallText)
-    # print(Search1)
-
-
 
     if (Search != []):  # If UPC Cached grab from database
 
         print(Search[0])
 
         RecallTime = float(60 * 60 * 24 * 7)
-        #print(str(float(Search[0]["Time"])) + " " + str(time.time()) + " " + (str(Search[0])))
 
         try:
             Search[0]["ErrorRevision"]
@@ -273,9 +251,6 @@ def AvgPrice(ItemLink,Title,OutOfCalls,Price,ErrorAppendSearchKeywords,EndTime,A
             print('hi0')
             print(CallText,Search[0]['SearchedItems'])
             return Search[0]['AvgPrice'], CallText,Search[0]['SearchedItems']
-
-
-        #if(Search[0]['AvgPrice'] < 0 ):
 
         if(len(Search) > 1):
             print("Search is greater than 1, this is a problem: " + str(Search))
@@ -411,7 +386,6 @@ def AvgPrice(ItemLink,Title,OutOfCalls,Price,ErrorAppendSearchKeywords,EndTime,A
             except:
                 pass
 
-    #print([Count,Count1,Count2])
     print(Prices)
 
     if (Recalling == 1 and Prices != []):
@@ -442,14 +416,12 @@ def AvgPrice(ItemLink,Title,OutOfCalls,Price,ErrorAppendSearchKeywords,EndTime,A
         print('hi6')
         db.insert({'CallText': CallText, "ItemTitle": Title, 'AvgPrice': -1, "Time": time.time(), "Error": "Found 0 Items", "ErrorRevision": CurrentErrorRevision, "ItemLink": ItemLink, "Price":Price,'SearchedItems':[]})
         dbErrors.insert({'CallText': CallText, "ItemTitle": Title, 'AvgPrice': -1, "Time": time.time(), "Error": "Found 0 Items", "ErrorRevision": CurrentErrorRevision, "ItemLink": ItemLink, "Price":Price, 'SearchKeywords':ErrorAppendSearchKeywords, "EndTime": EndTime})
-        #print("Found nothing For1: " + Title)
         print('hi4')
         return -1,CallText,[]
 
     if(Prices == []):
         db.insert({'CallText': CallText, "ItemTitle": Title, 'AvgPrice': -1, "Time": time.time(), "Error": "Found Items but None Sold", "ErrorRevision": CurrentErrorRevision, "ItemLink": ItemLink, "Price":Price,'SearchedItems':[]})
         dbErrors.insert({'CallText': CallText, "ItemTitle": Title, 'AvgPrice': -1, "Time": time.time(), "Error": "Found Items but None Sold", "ErrorRevision": CurrentErrorRevision, "ItemLink": ItemLink, "Price":Price, 'SearchKeywords':ErrorAppendSearchKeywords, "EndTime": EndTime})
-        #print("Found nothing For2: " + Title)
         print('hi5')
         return -1,CallText,[]
 
@@ -463,18 +435,9 @@ def AvgPrice(ItemLink,Title,OutOfCalls,Price,ErrorAppendSearchKeywords,EndTime,A
     print("hi")
     return Average,CallText,SearchedItems
 
-    #db.insert({'SearchTitle': UPCCode,"AvgPrice": AveragePrice,"Time":time.time()})
-    #return AveragePrice
-
-
-
-
-#AvgPrice('https://www.ebay.com/itm/Love-and-Medabots-volume-8-DVD-OOP-RARE-ANIME-SEALED-NO-SHRINK-WRAP-CARTOON-/202842752417','hi')
-
 def TitleToSearch (Title,URL=None):
 
     MultiItemAuction = False
-    OrigionalTitle = Title
 
     EditedTitle = Title[0:len(Title)]
 
@@ -562,7 +525,6 @@ def TitleToSearch (Title,URL=None):
             try:
                     EditedTitle = EditedTitle[0:EditedTitle.index(RemoveFirstWord) + 1]
             except:
-                # print("Failed 123: " + str(EditedTitle))
                 EditedTitle = EditedTitle[0:EditedTitle.index(RemoveFirstWord)]
 
     for RemoveLastWord in ['the']:
@@ -601,8 +563,6 @@ def TitleToSearch (Title,URL=None):
     if 'box set' in EditedTitle:
         EditedTitle = EditedTitle.replace('box set','box set boxset')
 
-    #print(EditedTitle + "                       Origional: " + OrigionalTitle)
-
     if(MultiItemAuction == False):
         Logs.Write("Title From Text: " + str(Title) + " | " + str(EditedTitle))
         return EditedTitle
@@ -612,17 +572,3 @@ def TitleToSearch (Title,URL=None):
         print("Multi Item Auction Found: " + str(Title) + " | " + str(EditedTitle) + " " + str(URL))
         Logs.Write("Title From Text Found MultiItemAuction: " + str(Title) + " | " + str(EditedTitle) + " " + str(URL))
         return True #EditedTitle
-
-#
-#WebDriverPath = os.path.dirname(os.path.dirname(__file__)) + '/Drivers/chromedriver.exe'
-#drivers = webdriver.Chrome(executable_path=WebDriverPath)
-#
-#
-#price1,drivers=Shipping('https://www.ebay.com/itm/Duke-Ellington-Memories-of-Duke-VHS-Mexican-Suite-/160539819435?_trksid=p5731.m3795',drivers)
-#print(price1)
-# price2,drivers = Shipping('https://www.ebay.com/itm/Disney-A-Kid-in-King-Arthurs-Court-VHS-Clamshell-EUC-/160562251316?_trksid=p5731.m3795',drivers)
-#
-#
-# print(str(price1) + " " + str(price2))
-
-# print(TitleToSearch('cartoon haibane renmei 4 dvd box set'))
