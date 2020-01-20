@@ -5,6 +5,7 @@ import time
 # Logs.py
 #
 # Logs contains 2 functions New and Write,
+#
 # Logs.New() will create a new log file in the logs/runtime folder and,
 # Logs.Write("Text to be written") will write a new line to the last log file
 ########################################################################################################################
