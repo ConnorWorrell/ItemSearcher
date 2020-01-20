@@ -51,6 +51,10 @@ def GenerateSearch(SearchString,StoppingPrice,AuctionsOnly):
     return SearchPriceChain
 
 def New():
+    path = os.path.dirname(os.path.dirname(__file__)) + "/DataBase/Searches/"
+    if not os.path.exists(path):
+        os.makedirs(path)
+
     db = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/DataBase/Searches/" + str(time.time()))
 
 def Search(Keywords,AuctionOnly,SearchIndex,dbSearches):

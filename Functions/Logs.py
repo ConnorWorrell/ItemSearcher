@@ -12,8 +12,16 @@ def New():
             f.write("%s\n" % item)
         f.close()
 
-LogName = str(max([float(s.replace('.txt', '')) for s in os.listdir(str(os.path.dirname(os.path.dirname(__file__))) + '/LOGS/Runtime/')]))
-LogPosition = str(os.path.dirname(os.path.dirname(__file__))) + '/LOGS/Runtime/' + LogName + ".txt"
+LogPath = str(os.path.dirname(os.path.dirname(__file__))) + '/LOGS/Runtime/'
+if not os.path.exists(str(os.path.dirname(os.path.dirname(__file__))) + '/LOGS/Runtime/'):
+    os.makedirs(str(os.path.dirname(os.path.dirname(__file__))) + '/LOGS/Runtime/')
+
+try:
+    LogName = str(max([float(s.replace('.txt', '')) for s in os.listdir(str(os.path.dirname(os.path.dirname(__file__))) + '/LOGS/Runtime/')]))
+    LogPosition = str(os.path.dirname(os.path.dirname(__file__))) + '/LOGS/Runtime/' + LogName + ".txt"
+except:
+    pass
+
 
 def Write(Data):
 

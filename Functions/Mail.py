@@ -23,6 +23,11 @@ def Send(Text):
     Text.insert(0,'Subject: Ebay Deals!\n')
 
     LogPosition = str(os.path.dirname(os.path.dirname(__file__))) + '/LOGS/Mail/' + str(time.time()) + ".txt"
+    LogPath = str(os.path.dirname(os.path.dirname(__file__))) + '/LOGS/Mail/'
+
+    if not os.path.exists(LogPath):
+        os.makedirs(LogPath)
+
     for Line in Text:
         with open(LogPosition, 'a') as f:
             f.write("%s\n" % (str(Line)))

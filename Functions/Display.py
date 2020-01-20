@@ -20,8 +20,11 @@ import os
 #Currently this is only used to display data from the last run if the Tkinter window is closed
 DisplayDataPosition = str(os.path.dirname(os.path.dirname(__file__))) + '/DataBase/DisplayData.txt'
 import json
-with open(DisplayDataPosition, 'r') as in_file: #Place display data into TestImageURL
-    TestImageURL = json.load(in_file)
+try:
+    with open(DisplayDataPosition, 'r') as in_file: #Place display data into TestImageURL
+        TestImageURL = json.load(in_file)
+except:
+    pass
 #TestImageURL = [['Ghost in the Shell (DVD, 1998, Original Japanese Dubbed and Subtitled English)', '0780063552929', '1.25', 7.25, 'https://i.ebayimg.com/00/s/MTYwMFgxMjAw/z/7AcAAOSwqp5eC3bc/$_3.JPG', 'https://www.ebay.com/itm/Ghost-Shell-DVD-1998-Original-Japanese-Dubbed-and-Subtitled-English-/312920734188', [['https://www.ebay.com/itm/Ghost-Shell-DVD-1998-Original-/164016988118', 'https://i.ebayimg.com/00/s/MTYwMFgxMjAw/z/gGAAAOSwYKBeD42b/$_3.JPG', '☆ Ghost in the Shell (DVD, 1998, Original ) ☆ ', '11.55']]]]
 
 CurrentViewing = 0 #Currently viewing is the current object position that is being displayed in Display Data
@@ -130,6 +133,8 @@ def PackText(Text,X,Y):
 #  Other: Maby save image at full scale or some larger scale so that if a low res image is requested once and then
 #         a high res is requested the high res is not the low res upscaled.
 PhotoCacheDirectory = str(os.path.dirname(os.path.dirname(__file__))) + '/DataBase/ImageCache'
+if not os.path.exists(PhotoCacheDirectory):
+    os.makedirs(PhotoCacheDirectory)
 def GetImageData(ImageURL,MaxHeight=700,MaxWidth=500):
 
     ChacheURL = ImageURL[0:len(ImageURL)] #duplicate ImageURL string
