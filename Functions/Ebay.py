@@ -79,18 +79,19 @@ def Call(Keywords,AuctionOnly,Page,MaxPrice,MinPrice,Present):
                     '&itemFilter(' + str(ItemFilterCount) + ').value(0)=AuctionWithBIN' \
                     '&itemFilter(' + str(ItemFilterCount) + ').value(1)=Auction'
 
-    APICALL = APICALL + '&outputSelector=PictureURLSuperSize'
+    APICALL = APICALL + '&outputSelector=PictureURLSuperSize'  # Request high quality photo
 
-    for retryNumber in range(Retries):
+    for retryNumber in range(Retries):  # Number of attempts
         try:
-            report = requests.get(APICALL)
+            report = requests.get(APICALL)  # Call API
 
-            if 'HTTP 404 Not Found' in str(report.json()):
+            if 'HTTP 404 Not Found' in str(report.json()):  # Connection Error
                 time.sleep(SleepTime)
-                SleepTime = SleepTime * 2
+                SleepTime = SleepTime * 2  # Exponential backoff and recall
                 continue
 
-            ReportSaveLocation = str(os.path.dirname(os.path.dirname(__file__))) + '/LOGS/Calls/' + CallFolder + '/' + str(time.time()) + ".txt"
+            # Save report to location
+            ReportSaveLocation = LogPosition + str(time.time()) + ".txt"
             with open(ReportSaveLocation, 'w') as APIResponcefile:
                 json.dump(report.json(), APIResponcefile)
             APIResponcefile.close()
@@ -99,15 +100,15 @@ def Call(Keywords,AuctionOnly,Page,MaxPrice,MinPrice,Present):
                 AuctionOnly) + " Present: " + str(Present) + " Between " + str(MinPrice) + " and " + str(
                 MaxPrice) + " at " + str(ReportSaveLocation))
 
-            dbCallCount.update(increment("Calls"), Search.Time == CallTime)
+            dbCallCount.update(increment("Calls"), Search.Time == CallTime)  # Incriment Call Count
 
-            return(report.json())
+            return(report.json())  # Success
         except:
-            time.sleep(SleepTime)
+            time.sleep(SleepTime)  # If failed to parce data recall with Exponential backoff
             SleepTime = SleepTime * 2
 
-    print("Failed to get api responce")
+    print("Failed to get api responce")  # ran out of recall attempts
     Logs.Write("Search Ebay Failed: " + Keywords + " Page: " + str(Page) + " Auction: " + str(
         AuctionOnly) + " Present: " + str(Present) + " Between " + str(MinPrice) + " and " + str(
         MaxPrice))
-    return None
+    return None  # Failure
