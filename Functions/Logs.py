@@ -11,6 +11,7 @@ import time
 ########################################################################################################################
 
 #Initilization
+
 LogPath = str(os.path.dirname(os.path.dirname(__file__))) + '/LOGS/Runtime/'  # Path to log folder
 # If folder dosen't exist create it
 if not os.path.exists(str(os.path.dirname(os.path.dirname(__file__))) + '/LOGS/Runtime/'):
