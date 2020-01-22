@@ -98,7 +98,7 @@ def Analisis(ItemsList):
         RecordedCycleTime.append(CycleTime)  # Keep track of number
 
         # If more than 300 numbers remove the first number in the list, or if the first number is negative and there is more than one number
-        if(len(RecordedCycleTime) > 300 or (RecordedCycleTime[0] < 0 and len(RecordedCycleTime >= 2))):
+        if(len(RecordedCycleTime) > 300 or (RecordedCycleTime[0] < 0 and len(RecordedCycleTime) >= 2)):
             RecordedCycleTime = RecordedCycleTime[1:len(RecordedCycleTime)]
 
         # Calculate expected time remaining in mins
