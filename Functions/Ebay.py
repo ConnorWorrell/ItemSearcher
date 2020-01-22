@@ -85,12 +85,12 @@ def Call(Keywords,AuctionOnly,Page,MaxPrice,MinPrice,Present):
     else:  # Find completed items
         OperationName = "findCompletedItems"
 
-    APICALL = 'https://svcs.ebay.com/services/search/FindingService/v1?OPERATION-NAME=' + OperationName + \
+    APICALL = 'https://svcs.ebay.com/services/search/FindingService/v1?OPERATION-NAME=' + str(OperationName) + \
               '&SERVICE-VERSION=1.0.0' \
-              '&SECURITY-APPNAME=' + SecurityAppName +  \
+              '&SECURITY-APPNAME=' + str(SecurityAppName) +  \
               '&RESPONSE-DATA-FORMAT=JSON' \
               '&REST-PAYLOAD' \
-              '&keywords=' + Keywords + \
+              '&keywords=' + str(Keywords) + \
               '&paginationInput.pageNumber=' + str(Page)
 
     ItemFilterCount = 0
