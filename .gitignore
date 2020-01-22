@@ -14,3 +14,5 @@ LOGS/Errors
 .idea/
 **/__pycache__/
 DataBase/Searching
+Testing/
+Functions/Testing.py
