@@ -473,149 +473,95 @@ def AvgPrice(ItemLink,Title,OutOfCalls,Price,ErrorAppendSearchKeywords,EndTime,A
 # URL is only used for adding item URL to log
 # Success: Title Successfully Simplified : (str)
 # Success: Multi Item Auction : True
-def TitleToSearch (Title,URL=None):
-
+def TitleToSearch (InputTitle,URL=None):
     MultiItemAuction = False
+    Title = []
+    Descriptors = []
 
-    EditedTitle = Title[0:len(Title)]  # Duplicate Title string
+    EditedTitle = InputTitle.encode('ascii', 'ignore').decode('ascii').lower() # Duplicate Title string
 
-    EditedTitle = EditedTitle.replace("("," ").replace(")"," ")  # Replace () with spaces
+    for CharacterIndex in range(len(EditedTitle)):
+        if (EditedTitle[CharacterIndex] in ",!@#$%^&*_+.?<>-/:;"):
+            EditedTitle = EditedTitle.replace(EditedTitle[CharacterIndex]," ")
 
-    if('US ' in EditedTitle or ' US' in EditedTitle):  # Remove characters
-        EditedTitle = EditedTitle.replace("US",'')
+    # print(EditedTitle)
 
-    EditedTitle = EditedTitle.lower()  # Set entire string to lower case
+    for Brackets in [["(",")"],["[","]"],["{","}"]]:
+        SearchToIndex = 0
+        for i in range(min(EditedTitle.count(Brackets[0]),EditedTitle.count(Brackets[1]))):
+            if Brackets[0] in EditedTitle[SearchToIndex:len(EditedTitle)] and Brackets[1] in EditedTitle[SearchToIndex:len(EditedTitle)]:
+                StartIndex = EditedTitle[SearchToIndex:len(EditedTitle)].index(Brackets[0]) + SearchToIndex
+                EndIndex = EditedTitle[SearchToIndex:len(EditedTitle)].index(Brackets[1]) + SearchToIndex
+                SearchToIndex = EndIndex+1
 
-    for IndiscrimantlyRemove in ["18+"]:  # Remove no matter what
-        EditedTitle = EditedTitle.replace(IndiscrimantlyRemove,"")
+                if(" " in EditedTitle[StartIndex:EndIndex] or EditedTitle[StartIndex+1:EndIndex-1].isdigit() or EditedTitle[StartIndex+1:EndIndex].lower() in ['dvd','bluray','blu-ray','new']):
 
-    for i in Title:  # replace all weird characters with spaces
-        if i not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 '":
-            EditedTitle = EditedTitle.replace(i," ")
+                    Descriptors.append(EditedTitle[StartIndex:EndIndex+1])
+                    Descriptors.append(EditedTitle[EndIndex + 1: len(EditedTitle)])
 
-    if('blu ray' in EditedTitle):  # replace string with other string
-        EditedTitle = EditedTitle.replace("blu ray","bluray")
+                    # print(Descriptors)
 
-    if 'feature film' in EditedTitle:  # remove string
-        EditedTitle = EditedTitle.replace('feature film','')
+                    EditedTitle = EditedTitle[0:StartIndex-1]
+                    break
+        if Brackets[0] in EditedTitle and not Brackets[1] in EditedTitle:
+            StartIndex = EditedTitle.index(Brackets[0])
+            Descriptors.append(EditedTitle[StartIndex:len(EditedTitle)])
+            EditedTitle = EditedTitle[0:StartIndex-1]
 
-    # replace string ie: "episode10" -> "episode 10"
-    if('episode' in EditedTitle and 'episode ' not in EditedTitle and 'episodes' not in EditedTitle):
-        EditedTitle = EditedTitle.replace('episode','episode ')
+    # print(EditedTitle)
+    # print(Descriptors)
 
-    for i in ['near new','brand new']:  # remove string
-        if(i in EditedTitle):
-            EditedTitle = EditedTitle.replace(i,'')
+    EditedTitle = EditedTitle.split(" ")
 
-    if('on dvd' in EditedTitle):  # replace string
-        EditedTitle = EditedTitle.replace('on dvd', 'dvd')
+    RemovalCount = 0
+    for i in range(len(EditedTitle)):
+        if EditedTitle[i - RemovalCount] == "":
+            EditedTitle.pop(i - RemovalCount)
+            RemovalCount = RemovalCount + 1
 
-    EditedTitle = EditedTitle.split(" ")  # turn into array of words
+    # print(EditedTitle)
 
-    for i in range(100):  # remove empty strings in array
-        try:
-            EditedTitle.remove("")
-        except:
-            break
+    DescriptiveWords = [["limited","edition"],['complete','#','dvd','series'],["collector's",'box'],['complete','dvd','set'],['dvd','set'],['dvd'],["dub",'and','sub'],['sub','and','dub'],['dub'],['sub'],['subs'],['subtitle'],['dubs'],['the','complete','series'],
+                        ['complete','series','collection'],['complete','series'],['complete','set'],
+                        ['sentai','filmworks'],["english"],["widescreen","edition"],['classic'],['like','new'],['used'],["brand","new"],["new"],["sealed"],['dubbed'],
+                        ['subbed'],["region","#"],["anime"],["-the","movie"],["blu","ray","combo","pack","with","slipcover"],['on','#','blu','ray'],['on','#','bluray'],['on','bluray'],['on','blu','ray'],['bluray','set'],['blu','ray','set'],['-vol','#','blu','ray'],
+                        ['blu','ray','collection'],['bluray','collection'],["bluray"],["blu","ray"],
+                        ['#','disc','set'],["#",'disc'],["#",'discs'],['rene','laloux'],['combo','pack'],['with','slipcover'],['matt','groening'],['fox','animated','series'],['limited','box','set'],['box','set'],
+                        ['boxed','set'],['the','complete','collection'],['the','complete'],['complete','collection'],['sd'],['comp'],['feature','film'],['digital'],['hd'],['tvma'],['unopened'],
+                        ['funimation','release'],['funimation'],['oop'],['sentai','filmwork'],['out','of','print'],['episodes','#','#'],['#','episodes'],['usa'],['mint'],['r1'],['official'],['america'],['slipcover'],['bandai','entertainment'],['bandai'],['honneamise'],
+                        ['japan'],['f'],['s'],['subtitles'],['premium','edition'],['studio','ghibli'],['excellent'],['discotek'],['#','eps'],['series','complete'],['vhs'],['b'],['u'],['available'],['hk'],
+                        ['in','shrink','wrap'],['complete','season'],['japanese'],['full','length'],['nickelodeon'],['special','edition'],['complete'],['box'],['geneon'],['kids'],['family'],['adv','films'],['adv'],['sentai'],['metal','tin'],['madman']]
+    for Word in DescriptiveWords:
+        for EditedTitleIndex in range(len(EditedTitle)):
+            ComparisonWord = ["#" if a.isdigit() else a for a in EditedTitle[EditedTitleIndex:EditedTitleIndex+len(Word)]]
 
-    EditedTitle = [a.lower() for a in EditedTitle]  # make lowercase again???
+            WordC = [ComparisonWord[Word.index(a)] if "-" in a and a.replace("-","") not in ComparisonWord else a for a in Word]
 
-    for RemoveWordAlways in ['anime','premium','limited','edition','cartoon','japanese','hotshots']: # remove words
-        if(RemoveWordAlways in EditedTitle):
-            EditedTitle.remove(RemoveWordAlways)
+            # print(str(WordC) + "  |  " + str(ComparisonWord))
 
-    if EditedTitle[0].isdigit():  # if first character is number move number to back
-        EditedTitle.append(EditedTitle[0])
-        EditedTitle = EditedTitle[1:len(EditedTitle)]
+            if(ComparisonWord == WordC):
+                # print("hi")
+                Descriptors.append(EditedTitle[EditedTitleIndex:EditedTitleIndex+len(WordC)])
+                for DescriptWordIndex in range(len(ComparisonWord)):
+                    # print(DescriptWordIndex)
 
-    for i in range(len(EditedTitle)):  # cycle words from the front to the back if they are in array, until word not in
-                                       # array ends up as the first word
-        if EditedTitle[0] in ['anime','premium','limited','edition','cartoon','japanese','hotshots', 'vol', 'used', 'cd', 'collection','dvd']:
-            TempStorage = EditedTitle[0]
-            EditedTitle = EditedTitle[1:len(EditedTitle)]
-            EditedTitle.append(TempStorage)
-        else:
-            break
+                    if("-" not in Word[DescriptWordIndex]):
+                        EditedTitle[EditedTitleIndex+DescriptWordIndex] = ""
+        RemovalCount = 0
+        for i in range(len(EditedTitle)):
+            if EditedTitle[i - RemovalCount] == "":
+                EditedTitle.pop(i - RemovalCount)
+                RemovalCount = RemovalCount + 1
 
-    for RemoveFirstWord in ['new','anime']:  # If words were at the beginning, remove them
-        if(RemoveFirstWord in EditedTitle and EditedTitle.index(RemoveFirstWord) == 0):
-            EditedTitle = EditedTitle[1:len(EditedTitle)]
-            break
+    MultiItemKeywords = [['sets'],['dvds'],['vol','#','and','vol','#'],['movies'],['+'],['#','and','#'],['and'],['collection','#','#'],['set','of','#'],['seasons','#','#'],['seasons','#','and','#'],['seasons'],['bundle'],['films']]
 
-    # Remove words after a word in the array unless the word is followed by a number then remove everything after the number
-    for RemoveAfterWordCheckNumber in ['collection','set','complete','bluray','seasons','season','volume','vol','vol.','part','parts','episode','dvd']:
-        if(RemoveAfterWordCheckNumber in EditedTitle and EditedTitle.index(RemoveAfterWordCheckNumber) < len(EditedTitle)):
-            # Word in array is also in Edited Title
-            try:
-                # If next word in Edited Title is followed by a number
-                if(EditedTitle.index(RemoveAfterWordCheckNumber)+1 < len(EditedTitle) and EditedTitle[EditedTitle.index(RemoveAfterWordCheckNumber)+1] in '1234567891011121314151617181920onetwothreefourfivesixseveneightnineteneleventwelve1st2nd3rd4th5th6th7th8th9th10th010203040506070809IIIVIII'):
+    RemovalCount = 0
+    for i in range(len(EditedTitle)):
+        if EditedTitle[i-RemovalCount] == "":
+            EditedTitle.pop(i-RemovalCount)
+            RemovalCount = RemovalCount + 1
 
-                    # If word 2 after in Edited Title is also a number then predict that the auction has multiple items
-                    if (EditedTitle.index(RemoveAfterWordCheckNumber) + 2 < len(EditedTitle) and EditedTitle[
-                        EditedTitle.index(
-                            RemoveAfterWordCheckNumber) + 2] in ['1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20',','
-                                                        'one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','1st','2nd','3rd','4th','5th','6th','7th','8th','9th','10th','01','02','03','04','05','06','07','08','09','I','II','III','IV','V','VI','VII','VIII','IX','X','w']):
-                        MultiItemAuction = True  # Set MultiItemAuction True
-                    EditedTitle = EditedTitle[0:EditedTitle.index(RemoveAfterWordCheckNumber) + 2]  # chop Edited title down to size
-                else:
-                    EditedTitle = EditedTitle[0:EditedTitle.index(RemoveAfterWordCheckNumber)+1]  # chop Edited title down to size
-            except:
-                print("Failed 123: " + str(EditedTitle))
-                EditedTitle = EditedTitle[0:EditedTitle.index(RemoveAfterWordCheckNumber)]
+    # if('Hataraki Man complete collection bluray, 11 SD anime episodes on 1 blu ray NEW!!' in InputTitle):
+    #     quit()
 
-    # If word is in array then remove everything after it
-    for RemoveWord in ['essentials', 'new',"blu-ray",'blu-ray/dvd','bluray/dvd']:
-        if (RemoveWord in EditedTitle and EditedTitle.index(RemoveWord) < len(
-                EditedTitle)):
-            try:
-                    EditedTitle = EditedTitle[0:EditedTitle.index(RemoveWord) + 1]
-            except:
-                EditedTitle = EditedTitle[0:EditedTitle.index(RemoveWord)]
-
-    for RemoveLastWord in ['the']:  # if the last word in array is 'the' then remove it
-        if(RemoveLastWord == EditedTitle[len(EditedTitle)-1]):
-            EditedTitle.pop(len(EditedTitle)-1)
-
-    for Numbers in EditedTitle:  # If numbers in edited array are large then remove everything after them
-        if Numbers.isdigit() == True and int(Numbers) > 1500:
-            EditedTitle = EditedTitle[0:EditedTitle.index(Numbers) + 1]
-            break
-
-    try:  # if array has #,'disc' in it remove both # and 'disc'
-        for discVariant in ['disc','discs']:
-            if discVariant in EditedTitle and EditedTitle[EditedTitle.index(discVariant)-1].isdigit():
-                Number = EditedTitle[EditedTitle.index(discVariant)-1]
-                EditedTitle.remove(Number)
-                EditedTitle.remove(discVariant)
-    except:
-        print("Write disc is first word in search title, fix this ebay.get()")
-        pass
-
-    # if array has #, 'dvd' in it remove #
-    for discVariantNoRemovedisc in ['dvd','episodes']:
-        if discVariantNoRemovedisc in EditedTitle and EditedTitle[EditedTitle.index(discVariantNoRemovedisc) - 1].isdigit():
-            Number = EditedTitle[EditedTitle.index(discVariantNoRemovedisc) - 1]
-            EditedTitle.remove(Number)
-
-    if 'disc' in EditedTitle:  # remove string
-        EditedTitle.remove('disc')
-
-    for LargeNumberCheck in EditedTitle:  # Remove numbers larger than 1000
-        if LargeNumberCheck.isdigit() and int(LargeNumberCheck) > 1000:
-            EditedTitle.remove(LargeNumberCheck)
-
-    EditedTitle = " ".join(EditedTitle)  # Join array back together
-
-    if 'box set' in EditedTitle:  # Replace string
-        EditedTitle = EditedTitle.replace('box set','box set boxset')
-
-    if(MultiItemAuction == False):
-        Logs.Write("Title From Text: " + str(Title) + " | " + str(EditedTitle))
-        return EditedTitle  # Success, Successfully Simplified Title
-
-    else:  # Multi item auction Found
-        if(URL == None):
-            URL = ""
-        print("Multi Item Auction Found: " + str(Title) + " | " + str(EditedTitle) + " " + str(URL))
-        Logs.Write("Title From Text Found MultiItemAuction: " + str(Title) + " | " + str(EditedTitle) + " " + str(URL))
-        return True  # Success, Multi Item Auction Predicted
+    return " ".join(EditedTitle)
