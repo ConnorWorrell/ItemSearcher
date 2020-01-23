@@ -255,7 +255,7 @@ def AvgPrice(ItemLink,Title,OutOfCalls,Price,ErrorAppendSearchKeywords,EndTime,A
     if(ItemLink == None):  # If no item link is given
         TitleSearch = Title  # Searching based on title
         UPCCode = -1
-        CallText = UPCCode
+        CallText = TitleSearch
     else:  # Item link is given
         UPCCode = UPC(ItemLink,UPCDataBase)  # Grab UPC of item
         TitleSearch = TitleToSearch(Title,URL=ItemLink)  # Grab simplified title to search by
@@ -267,7 +267,6 @@ def AvgPrice(ItemLink,Title,OutOfCalls,Price,ErrorAppendSearchKeywords,EndTime,A
     Search = db.search(User.CallText == CallText)  # Check if avg price is in database
 
     if (Search != []):  # If avg price Cached grab from database
-
         RecallTime = float(60 * 60 * 24 * 7)  # Time between when avg price is stored to next time it is updated
 
         try:  # Make sure that avg price has ErrorRevision and SearchedItems keywords
