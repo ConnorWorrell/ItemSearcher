@@ -361,13 +361,24 @@ def PackLastImage():
 
 #Search is activated when pressing the search button and generates and places items that come up in search
 def Search(Title):
+
+    ScrollFramePosition = [ScreenSize[0]/2-20,ScreenSize[1]-100,ScreenSize[0]/2+10,50]# Width,Height,X,Y
+
     # Search from cached or web
     Prices, FinalSearchName, SearchedItems = Get.AvgPrice(None,Title,0,0,Title,0,AvgPriceDataBase1,ErrorsDataBase1,UPCDataBase1)
 
+    FrameIndex = [str(a) for a in ImageWidgets]
+    for ItemIndex in range(len(FrameIndex)):
+        if('verticalscrolledframe' in FrameIndex[ItemIndex]):
+            print(FrameIndex[ItemIndex])
+            ImageWidgets[ItemIndex].destroy()
+
     # Place scrolled frame
-    frame1 = VerticalScrolledFrame(MainWindow, height=750, width=500, bd=2, relief=SUNKEN)
-    frame1.place(x=600, y=50)
+    frame1 = VerticalScrolledFrame(MainWindow, height=ScrollFramePosition[1], width=ScrollFramePosition[0], bd=2, relief=SUNKEN)
+    frame1.place(x=ScrollFramePosition[2], y=ScrollFramePosition[3])
     ImageWidgets.append(frame1)
+
+    print(ImageWidgets)
 
     #Duplicate text from PackImageFromURL, Move to function
     Links = []
@@ -411,6 +422,7 @@ def Search(Title):
 
         p = p + 1
 
+ScreenSize = [0,0]
 
 # Startup generates main window
 def Startup(InputSet):
@@ -467,6 +479,14 @@ def Startup(InputSet):
     #Initial pack image
     PackImageFromURL(InputSet[CurrentViewing % len(InputSet)])
 
+    def on_resize(event):
+        global ScreenSize
+        ScreenSize[0] = MainWindow.winfo_width()
+        ScreenSize[1] = MainWindow.winfo_height()
+        print(ScreenSize)
+
+    MainWindow.bind("<Configure>", on_resize)
+
     # Startup Main Window
     MainWindow.mainloop()
 
@@ -498,3 +518,8 @@ def LoadImages(ImageURLsArray,ThreadCount=16):
     ItemsPerGroup = 3 #Items per group is the number of items that each thread is given to load before it is given a new set of items
     futures = [executor.submit(GetMultiImageData, group)for group in grouper(ItemsPerGroup, ImageURLsArray)]
     concurrent.futures.wait(futures)
+
+def StartupLast():
+    Startup(TestImageURL)
+
+StartupLast()
