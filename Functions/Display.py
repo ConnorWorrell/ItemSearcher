@@ -370,15 +370,12 @@ def Search(Title):
     FrameIndex = [str(a) for a in ImageWidgets]
     for ItemIndex in range(len(FrameIndex)):
         if('verticalscrolledframe' in FrameIndex[ItemIndex]):
-            print(FrameIndex[ItemIndex])
             ImageWidgets[ItemIndex].destroy()
 
     # Place scrolled frame
     frame1 = VerticalScrolledFrame(MainWindow, height=ScrollFramePosition[1], width=ScrollFramePosition[0], bd=2, relief=SUNKEN)
     frame1.place(x=ScrollFramePosition[2], y=ScrollFramePosition[3])
     ImageWidgets.append(frame1)
-
-    print(ImageWidgets)
 
     #Duplicate text from PackImageFromURL, Move to function
     Links = []
@@ -483,7 +480,7 @@ def Startup(InputSet):
         global ScreenSize
         ScreenSize[0] = MainWindow.winfo_width()
         ScreenSize[1] = MainWindow.winfo_height()
-        print(ScreenSize)
+        #print(ScreenSize)
 
     MainWindow.bind("<Configure>", on_resize)
 
