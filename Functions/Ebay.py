@@ -124,7 +124,7 @@ def Call(Keywords,AuctionOnly,Page,MaxPrice,MinPrice,Present):
                 json.dump(report.json(), APIResponcefile)
             APIResponcefile.close()
 
-            Logs.Write("Search Ebay: " + Keywords + " Page: " + str(Page) + " Auction: " + str(
+            Logs.Write("Search Ebay: " + str(Keywords) + " Page: " + str(Page) + " Auction: " + str(
                 AuctionOnly) + " Present: " + str(Present) + " Between " + str(MinPrice) + " and " + str(
                 MaxPrice) + " at " + str(ReportSaveLocation))
 
@@ -136,7 +136,7 @@ def Call(Keywords,AuctionOnly,Page,MaxPrice,MinPrice,Present):
             SleepTime = SleepTime * 2
 
     print("Failed to get api responce")  # ran out of recall attempts
-    Logs.Write("Search Ebay Failed: " + Keywords + " Page: " + str(Page) + " Auction: " + str(
+    Logs.Write("Search Ebay Failed: " + str(Keywords) + " Page: " + str(Page) + " Auction: " + str(
         AuctionOnly) + " Present: " + str(Present) + " Between " + str(MinPrice) + " and " + str(
         MaxPrice))
     return None  # Failure
