@@ -16,7 +16,7 @@ Discount = .7  # Minimum percent of original price, avg of 10$ item will need to
 SpecificProductDiscount = 2  # Percent of origional price for items in specific item section
 
 SearchEverything = 0  # 0 If searching only auctions 1 if searching all listings
-ReuseSearch = 0  # Use data from previous search instead of generating new search items
+ReuseSearch = 1  # Use data from previous search instead of generating new search items
 StoppingPrice = [50,6.0]  # [Auctions Only, Everything] Max price without shipping
 MaxCalls = 0  # Maximum calls per item search
 
@@ -158,7 +158,7 @@ def Analisis(ItemsList):
                 AddToGUI(ItemName, '', str(float(ItemPrice)+float(ItemShipping)), '0', ItemPicture, ItemURL, [])
             continue
         else:  # Item is probably a single item
-            Prices,FinalSearchName,SearchedItems = Get.AvgPrice(ItemURL,ItemTitle,OutOfCalls,float(ItemPrice) + float(ItemShipping),ItemSearchKeywords,float(UnixEndingStamp),AvgPriceDataBase,ErrorsDataBase,UPCDataBase)
+            Prices,FinalSearchName,SearchedItems = Get.AvgPrice(ItemURL,ItemTitle,OutOfCalls,float(ItemPrice) + float(ItemShipping),ItemSearchKeywords,float(UnixEndingStamp),AvgPriceDataBase,ErrorsDataBase,UPCDataBase,ImageURL = ItemPicture)
 
         if(FinalSearchName == None or ItemTitle == None):  # Issues getting specific item names
             print("Error: 24, None type")
@@ -246,6 +246,7 @@ if __name__ == "__main__":
         if(dbErrorsTable[a]["EndTime"] < time.time()+EndingSoon and dbErrorsTable[a]["EndTime"] > time.time()):# + 60*60*17):
             print(dbErrorsTable[a]["EndTime"])
             Errors.append([dbErrorsTable[a]['Price'],str(dbErrorsTable[a]['Error']) + " " + str(dbErrorsTable[a]['ItemLink']) + " " + str([dbErrorsTable[a]['ItemTitle']]) + " " + str([dbErrorsTable[a]['CallText']]) + str(dbErrorsTable[a]["EndTime"]) + " | " + str(dbErrorsTable[a]['SearchKeywords'])])
+            AddToGUI(str([dbErrorsTable[a]['ItemTitle']]),str([dbErrorsTable[a]['CallText']]),dbErrorsTable[a]['Price'],str(dbErrorsTable[a]['Error']),str(dbErrorsTable[a]['ImageURL']),str(dbErrorsTable[a]['ItemLink']),[])
 
     for i in OutputSpecific:  # add the Specific items to the main output variable
         Output.append(i)
