@@ -275,8 +275,10 @@ def PackImageFromURL(Input):
     link1.bind("<Button-1>", lambda e: OpenInBrowzer(PageURL))
 
     # Add scrollable frame to the right side
-    frame1 = VerticalScrolledFrame(MainWindow,height=750,width=500, bd=2, relief=SUNKEN)
-    frame1.place(x=600,y=50)
+    ScrollFramePosition = [ScreenSize[0] / 2 - 20, ScreenSize[1] - 100, ScreenSize[0] / 2 + 10, 50]  # Width,Height,X,Y
+    frame1 = VerticalScrolledFrame(MainWindow, height=ScrollFramePosition[1], width=ScrollFramePosition[0], bd=2,
+                                   relief=SUNKEN)
+    frame1.place(x=ScrollFramePosition[2], y=ScrollFramePosition[3])
     ImageWidgets.append(frame1)
 
     Links = []
@@ -518,5 +520,3 @@ def LoadImages(ImageURLsArray,ThreadCount=16):
 
 def StartupLast():
     Startup(TestImageURL)
-
-StartupLast()
