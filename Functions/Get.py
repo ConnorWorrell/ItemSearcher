@@ -243,7 +243,7 @@ def Shipping(ItemLink,driver,ShippingDataBase,WebDriverPath):
 # Note: 3 identical sections of code that could be condensed
 # Success: (float), Found new avg price, Found cached avg price, Could not find new avg price but had old avg price
 # Failure: Multi Item Auction Predicted : -1, Out Of Calls : -2, No items found : -1, No items sold : -1
-def AvgPrice(ItemLink,Title,OutOfCalls,Price,ErrorAppendSearchKeywords,EndTime,AVGPriceDB,ErrorsDB,UPCDataBase):
+def AvgPrice(ItemLink,Title,OutOfCalls,Price,ErrorAppendSearchKeywords,EndTime,AVGPriceDB,ErrorsDB,UPCDataBase,ImageURL = ""):
     CurrentErrorRevision = 4 # Stored in database incase new things need to be added
     Recalling = None
 
@@ -291,7 +291,7 @@ def AvgPrice(ItemLink,Title,OutOfCalls,Price,ErrorAppendSearchKeywords,EndTime,A
             Recalling = 0
 
         # Check if error revision number is the correct number, if it is then the cached avg price is still valid
-        elif(Recalling == None and Search[0]["ErrorRevision"] == CurrentErrorRevision):
+        elif(Recalling == None and Search[0]["ErrorRevision"] == CurrentErrorRevision and float(Search[0]['AvgPrice']) > 0):
             Logs.Write("Get AVG Price from UPC: " + str(CallText) + " Cache: " + str(Search[0]['AvgPrice']))
             return Search[0]['AvgPrice'], CallText,Search[0]['SearchedItems']  # Success, cached price
 
@@ -310,16 +310,22 @@ def AvgPrice(ItemLink,Title,OutOfCalls,Price,ErrorAppendSearchKeywords,EndTime,A
 
         try:
             # If not recalling and error revision number is incorrect remove item from database
+
+            # print("ErrorCheck")
+            # print(Search[0]["AvgPrice"])
+
             if(Recalling == None and Search[0]["ErrorRevision"] != CurrentErrorRevision):
                 print("Removed incorrect error revision number")
                 db.remove(User.CallText == CallText)
 
             # If not recalling and cached avg price was -1 (Error or Unable to find price)
-            elif(Recalling == None and Search[0]['avgPrice'] < 0):
+            elif(Recalling == None and Search[0]['AvgPrice'] < 0):
                 ErrorCode = Search[0]  # Mix item specific information into database information and return
                 ErrorCode['SearchKeywords'] = ErrorAppendSearchKeywords
                 ErrorCode["EndTime"] = EndTime
                 ErrorCode["ItemLink"] = ItemLink
+                ErrorCode["ImageURL"] = ImageURL
+                # print("Errors")
                 dbErrors.insert(ErrorCode)
                 return Search[0]['AvgPrice'],CallText,Search[0]['SearchedItems']  # Success, returning previous Failure
         except:  # If something failed with the databases then recall, remove item if it has the wrong error revision
@@ -455,12 +461,12 @@ def AvgPrice(ItemLink,Title,OutOfCalls,Price,ErrorAppendSearchKeywords,EndTime,A
 
     if Count == 0 and (Count1 == 0 and Count2 == 0):  # If no items were found using Title or UPC
         db.insert({'CallText': CallText, "ItemTitle": Title, 'AvgPrice': -1, "Time": time.time(), "Error": "Found 0 Items", "ErrorRevision": CurrentErrorRevision, "ItemLink": ItemLink, "Price":Price,'SearchedItems':[]})
-        dbErrors.insert({'CallText': CallText, "ItemTitle": Title, 'AvgPrice': -1, "Time": time.time(), "Error": "Found 0 Items", "ErrorRevision": CurrentErrorRevision, "ItemLink": ItemLink, "Price":Price, 'SearchKeywords':ErrorAppendSearchKeywords, "EndTime": EndTime})
+        dbErrors.insert({'CallText': CallText, "ItemTitle": Title, 'AvgPrice': -1, "Time": time.time(), "Error": "Found 0 Items", "ErrorRevision": CurrentErrorRevision, "ItemLink": ItemLink, "Price":Price, 'SearchKeywords':ErrorAppendSearchKeywords, "EndTime": EndTime,"ImageURL" : ImageURL})
         return -1,CallText,[]  # Failure, No Items Found
 
     if(Prices == []):
         db.insert({'CallText': CallText, "ItemTitle": Title, 'AvgPrice': -1, "Time": time.time(), "Error": "Found Items but None Sold", "ErrorRevision": CurrentErrorRevision, "ItemLink": ItemLink, "Price":Price,'SearchedItems':[]})
-        dbErrors.insert({'CallText': CallText, "ItemTitle": Title, 'AvgPrice': -1, "Time": time.time(), "Error": "Found Items but None Sold", "ErrorRevision": CurrentErrorRevision, "ItemLink": ItemLink, "Price":Price, 'SearchKeywords':ErrorAppendSearchKeywords, "EndTime": EndTime})
+        dbErrors.insert({'CallText': CallText, "ItemTitle": Title, 'AvgPrice': -1, "Time": time.time(), "Error": "Found Items but None Sold", "ErrorRevision": CurrentErrorRevision, "ItemLink": ItemLink, "Price":Price, 'SearchKeywords':ErrorAppendSearchKeywords, "EndTime": EndTime,"ImageURL" : ImageURL})
         return -1,CallText,[]  # Failure, Items found but No Items Sold
 
     Average = statistics.mean(Prices)  # Calculate average price, put into data base
@@ -481,8 +487,11 @@ def TitleToSearch (InputTitle,URL=None):
     EditedTitle = InputTitle.encode('ascii', 'ignore').decode('ascii').lower() # Duplicate Title string
 
     for CharacterIndex in range(len(EditedTitle)):
-        if (EditedTitle[CharacterIndex] in ",!@#$%^&*_+.?<>-/:;"):
+        if (EditedTitle[CharacterIndex] in ",!@#$%^*_.?<>-/\:;"):
             EditedTitle = EditedTitle.replace(EditedTitle[CharacterIndex]," ")
+
+    if('volume' in EditedTitle):
+        EditedTitle = EditedTitle.replace("volume",'vol')
 
     # print(EditedTitle)
 
@@ -494,7 +503,7 @@ def TitleToSearch (InputTitle,URL=None):
                 EndIndex = EditedTitle[SearchToIndex:len(EditedTitle)].index(Brackets[1]) + SearchToIndex
                 SearchToIndex = EndIndex+1
 
-                if(" " in EditedTitle[StartIndex:EndIndex] or EditedTitle[StartIndex+1:EndIndex-1].isdigit() or EditedTitle[StartIndex+1:EndIndex].lower() in ['dvd','bluray','blu-ray','new']):
+                if(" " in EditedTitle[StartIndex:EndIndex] or EditedTitle[StartIndex+1:EndIndex-1].isdigit() or EditedTitle[StartIndex+1:EndIndex].lower() in ['dvd','bluray','blu-ray','new','used']):
 
                     Descriptors.append(EditedTitle[StartIndex:EndIndex+1])
                     Descriptors.append(EditedTitle[EndIndex + 1: len(EditedTitle)])
@@ -511,6 +520,19 @@ def TitleToSearch (InputTitle,URL=None):
     # print(EditedTitle)
     # print(Descriptors)
 
+    for Replace in [['&','and']]:
+        if(Replace[0] in EditedTitle):
+            EditedTitle=EditedTitle.replace(Replace[0],Replace[1])
+
+    MultiItemKeywords = [['sets'], ['dvds'], ['vol', '#', 'and', 'vol', '#'], ['movies'], ['#', 'and', '#'],
+                         ['collection', '#', '#'], ['set', 'of', '#'], ['seasons', '#', '#'],['vol','#','#'],['vol','#','#','#'],['vol','#','#','#','#'],['vol','#','#','#','#','#'],['vol','#','#','#','#','#','#'],['vol','#','#','#','#','#','#','#'],
+                         ['seasons', '#', 'and', '#'], ['seasons'], ['bundle'], ['films'],['volumes'],['manga','+','anime'],
+                         ['anime','+','manga'], ['disc','#','disc','#'],[' + '],['multiple'],['titles'],['starter','set']]#Anime, The Empire Of Corpses Feature Film Blu-Ray DVD & Digital HD TVMA Unopened
+    for Keyword in MultiItemKeywords:
+        if " ".join(Keyword) in " ".join([("#" if float(a) < 1500 else a) if a.isdigit() else a for a in EditedTitle.split(" ")]):
+            # print(Keyword)
+            return True
+
     EditedTitle = EditedTitle.split(" ")
 
     RemovalCount = 0
@@ -521,19 +543,29 @@ def TitleToSearch (InputTitle,URL=None):
 
     # print(EditedTitle)
 
-    DescriptiveWords = [["limited","edition"],['complete','#','dvd','series'],["collector's",'box'],['complete','dvd','set'],['dvd','set'],['dvd'],["dub",'and','sub'],['sub','and','dub'],['dub'],['sub'],['subs'],['subtitle'],['dubs'],['the','complete','series'],
-                        ['complete','series','collection'],['complete','series'],['complete','set'],
+    DescriptiveWords = [['part','#'],['ovas','and','movie'],['anime','and','ova'],["limited","edition",'special','cd'],["limited","edition"],['dvd','collection'],['blu','ray','and','dvd'],['bluray','and','dvd'],['dvd','and','blu','ray'],['-vol','#','dvd','set'],['dvd','and','bluray'],['-vol','#','dvd','box','set'],
+                        ['first','season','#'],['season','#'],['complete','#','dvd','series'],["collector's",'box'],['complete','dvd','set'],['dvd','set'],['bonus','dvd'],['dvd','feature'],['-vol','#','dvd','set'],['-vol','#','dvd'],['dvd'],["dub",'and','sub'],['sub','and','dub'],['dub'],['sub'],['subs'],['subtitle'],['dubs'],
+                        ['the','complete','series'],
+                        ['complete','series','collection'],['complete','series','boxset'],['complete','series'],['complete','set'],
                         ['sentai','filmworks'],["english"],["widescreen","edition"],['classic'],['like','new'],['used'],["brand","new"],["new"],["sealed"],['dubbed'],
-                        ['subbed'],["region","#"],["anime"],["-the","movie"],["blu","ray","combo","pack","with","slipcover"],['on','#','blu','ray'],['on','#','bluray'],['on','bluray'],['on','blu','ray'],['bluray','set'],['blu','ray','set'],['-vol','#','blu','ray'],
-                        ['blu','ray','collection'],['bluray','collection'],["bluray"],["blu","ray"],
+                        ['subbed'],["region","#"],['anime','legends'],['complete','anime','series'],['anime','works'],["anime"],['dual','movie'],["-the","movie"],["blu","ray","combo","pack","with","slipcover"],['on','#','blu','ray'],['on','#','bluray'],['on','bluray'],['on','blu','ray'],['bluray','set'],['blu','ray','set'],['-vol','#','blu','ray'],
+                        ['blu','ray','collection'],['bluray','collection'],['blu','ray','w','slipcover'],['bluray','w','slipcover'],["bluray"],["blu","ray"],
                         ['#','disc','set'],["#",'disc'],["#",'discs'],['rene','laloux'],['combo','pack'],['with','slipcover'],['matt','groening'],['fox','animated','series'],['limited','box','set'],['box','set'],
-                        ['boxed','set'],['the','complete','collection'],['the','complete'],['complete','collection'],['sd'],['comp'],['feature','film'],['digital'],['hd'],['tvma'],['unopened'],
+                        ['boxed','set'],['the','complete','collection'],['the','complete'],['complete','collection'],['sd'],['comp'],['feature','film'],['no','digital','code'],['digital','code'],['digital'],['ultra','hd'],['hd'],['tvma'],['unopened'],
                         ['funimation','release'],['funimation'],['oop'],['sentai','filmwork'],['out','of','print'],['episodes','#','#'],['#','episodes'],['usa'],['mint'],['r1'],['official'],['america'],['slipcover'],['bandai','entertainment'],['bandai'],['honneamise'],
-                        ['japan'],['f'],['s'],['subtitles'],['premium','edition'],['studio','ghibli'],['excellent'],['discotek'],['#','eps'],['series','complete'],['vhs'],['b'],['u'],['available'],['hk'],
-                        ['in','shrink','wrap'],['complete','season'],['japanese'],['full','length'],['nickelodeon'],['special','edition'],['complete'],['box'],['geneon'],['kids'],['family'],['adv','films'],['adv'],['sentai'],['metal','tin'],['madman']]
+                        ['japan','version'],['japan'],['f'],['s'],['subtitles'],['premium','edition'],['studio','ghibli'],['excellent'],['discotek'],['#','eps'],['series','complete'],['vhs'],['b'],['u'],['available'],['hk'],
+                        ['in','shrink','wrap'],['complete','season'],['japanese','version'],['japanese'],['full','length'],['nickelodeon'],['special','edition'],['complete'],['box'],['geneon'],['kids'],['family'],['adv','films'],['adv'],['sentai'],['metal','tin'],['madman'],
+                        ['plus','insert'],['only','disc'],['disc','only'],['3d'],['uhd'],['4k'],['best','buy','exclusive'],['very','nice'],['wide','screen'],['anchor','bay'],['rare'],['horror'],['free','shipping'],['perfect','collection'],
+                        ['essential','collection','#'],['essential','collection'],['cartoon'],['pioneer'],['le'],
+                        ['dts'],['orig'],['vg+'],['#>1500'],['e1','#'],['#','bd','disk'],['tv','series'],['tv'],['import'],['with','nendoroids','and','extras'],['with','dendoroids'],['with','extras'],['premium',"collector's",'edition'],['original','series'],
+                        ['dream','works' ,"animation's"],['dreamworks','animation'],['-the','animation'],['juni','nishimura'],['with','all','promo','cells'],['korea'],['full','slip','keep','case'],['disney',"-animation","-collection"],['aniv','edition'],['anniversary','edition'],['anniv','edition'],
+                        ['sci','fi'],['fantasy'],['drama'],['thriller'],['clamp'],["dvd's",'#','#','#'],["dvd's",'#','#'],["dvd's",'#'],["#","#"],['with'],['ova'],['never','opened']]
+
     for Word in DescriptiveWords:
-        for EditedTitleIndex in range(len(EditedTitle)):
-            ComparisonWord = ["#" if a.isdigit() else a for a in EditedTitle[EditedTitleIndex:EditedTitleIndex+len(Word)]]
+        for EditedTitleIndex in range(len(EditedTitle)-len(Word)+1):
+            ComparisonWord = [("#" if int(a) < 1500 else "#>1500") if a.isdigit() else a for a in EditedTitle[EditedTitleIndex:EditedTitleIndex+len(Word)]]
+
+            # print(str(Word) + "  |  " + str(ComparisonWord))
 
             WordC = [ComparisonWord[Word.index(a)] if "-" in a and a.replace("-","") not in ComparisonWord else a for a in Word]
 
@@ -541,7 +573,7 @@ def TitleToSearch (InputTitle,URL=None):
 
             if(ComparisonWord == WordC):
                 # print("hi")
-                Descriptors.append(EditedTitle[EditedTitleIndex:EditedTitleIndex+len(WordC)])
+                Descriptors.append(" ".join(EditedTitle[EditedTitleIndex:EditedTitleIndex+len(WordC)]))
                 for DescriptWordIndex in range(len(ComparisonWord)):
                     # print(DescriptWordIndex)
 
@@ -553,7 +585,9 @@ def TitleToSearch (InputTitle,URL=None):
                 EditedTitle.pop(i - RemovalCount)
                 RemovalCount = RemovalCount + 1
 
-    MultiItemKeywords = [['sets'],['dvds'],['vol','#','and','vol','#'],['movies'],['+'],['#','and','#'],['and'],['collection','#','#'],['set','of','#'],['seasons','#','#'],['seasons','#','and','#'],['seasons'],['bundle'],['films']]
+    if('vol' in EditedTitle):
+        Descriptors.append(" ".join(EditedTitle[EditedTitle.index('vol'):len(EditedTitle)]))
+        EditedTitle = EditedTitle[0:EditedTitle.index('vol')]
 
     RemovalCount = 0
     for i in range(len(EditedTitle)):
@@ -561,7 +595,35 @@ def TitleToSearch (InputTitle,URL=None):
             EditedTitle.pop(i-RemovalCount)
             RemovalCount = RemovalCount + 1
 
+    for WordFollowedByNumber in ['season','vol']:
+        for Descript in Descriptors:
+            # print(Descriptors)
+            Item = Descript.split(" ")
+            if(WordFollowedByNumber in Item and len(Item) > Item.index(WordFollowedByNumber)+1 and Item[Item.index(WordFollowedByNumber)+1].isdigit()):
+                EditedTitle.append(" ".join([Item[Item.index(WordFollowedByNumber)], Item[Item.index(WordFollowedByNumber)+1]]))
+
+    DescriptorsStr = Descriptors
+    DescriptorsStr = " ".join(DescriptorsStr).split(" ")
+    for WordSet in [['complete','series'],['platinum','edition'],['complete','collection'],['limited','edition'],['the','complete','box','set'],['complete','box','set']]:
+        Good = 0
+        for Word in WordSet:
+            # print(Word + "  |  " + str(DescriptorsStr))
+            if(Word in DescriptorsStr):
+                Good = Good + 1
+        if(Good >= len(WordSet)):
+            EditedTitle.append(" ".join(WordSet))
+            break
+
     # if('Hataraki Man complete collection bluray, 11 SD anime episodes on 1 blu ray NEW!!' in InputTitle):
     #     quit()
+    for DiscTypeCheck in Descriptors:
+        if('blu' in DiscTypeCheck and 'ray' in DiscTypeCheck):
+            EditedTitle.append('bluray')
+            break
+        elif('dvd' in DiscTypeCheck):
+            EditedTitle.append('dvd')
+            break
+
+
 
     return " ".join(EditedTitle)
