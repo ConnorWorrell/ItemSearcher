@@ -199,22 +199,25 @@ def Shipping(ItemLink,driver,ShippingDataBase,WebDriverPath):
         except:
             pass  # Could not locate element, seller probably specified shipping
 
-        # Type zipcode into zipcode box
-        for zipCodeLetterIndex in range(len(zipCode)):
-            try:
-                WebDriverWait(driver, TimeoutTime).until(  # Type letter
-                    EC.element_to_be_clickable((By.ID, "shZipCode"))).send_keys(zipCode[zipCodeLetterIndex])
-            except:  # Unable to place letter reloading page
-                continue
-            time.sleep(  # Wait between letters (Technically unnecessary but makes it look like typing is more natural)
-                random.uniform(WaitTimeBetweenButtons, WaitTimeBetweenButtons * 2))
+        CurrentZipCode = driver.find_element(By.ID,"shZipCode").get_attribute("value")
 
-        try:  # Click submit button for zip code
-            WebDriverWait(driver, TimeoutTime).until(EC.element_to_be_clickable((By.ID, "shGetRates"))).click()
-        except:
-            continue
-        time.sleep(  # Wait for page to reload after submit is clicked
-            random.uniform(WaitTimeBetweenButtons, WaitTimeBetweenButtons * 2) ** 2)
+        if(CurrentZipCode != zipCode):
+            # Type zipcode into zipcode box
+            for zipCodeLetterIndex in range(len(zipCode)):
+                try:
+                    WebDriverWait(driver, TimeoutTime).until(  # Type letter
+                        EC.element_to_be_clickable((By.ID, "shZipCode"))).send_keys(zipCode[zipCodeLetterIndex])
+                except:  # Unable to place letter reloading page
+                    continue
+                time.sleep(  # Wait between letters (Technically unnecessary but makes it look like typing is more natural)
+                    random.uniform(WaitTimeBetweenButtons, WaitTimeBetweenButtons * 2))
+
+            try:  # Click submit button for zip code
+                WebDriverWait(driver, TimeoutTime).until(EC.element_to_be_clickable((By.ID, "shGetRates"))).click()
+            except:
+                continue
+            time.sleep(  # Wait for page to reload after submit is clicked
+                random.uniform(WaitTimeBetweenButtons, WaitTimeBetweenButtons * 2) ** 2)
 
         try:  # Read pricing data
             ShippingInfoRaw = str(WebDriverWait(driver, TimeoutTime).until(
