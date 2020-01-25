@@ -493,7 +493,7 @@ def TitleToSearch (InputTitle,URL=None):
     EditedTitle = InputTitle.encode('ascii', 'ignore').decode('ascii').lower() # Duplicate Title string
 
     for CharacterIndex in range(len(EditedTitle)):
-        if (EditedTitle[CharacterIndex] in ",!@#$%^*_.?<>-/\:;"):
+        if (EditedTitle[CharacterIndex] in ",!@#$%^*_.?<>-/~`\:;" + '"'):
             EditedTitle = EditedTitle.replace(EditedTitle[CharacterIndex]," ")
 
     if('volume' in EditedTitle):
@@ -530,10 +530,11 @@ def TitleToSearch (InputTitle,URL=None):
         if(Replace[0] in EditedTitle):
             EditedTitle=EditedTitle.replace(Replace[0],Replace[1])
 
-    MultiItemKeywords = [['sets'], ['dvds'], ['vol', '#', 'and', 'vol', '#'], ['movies'], ['#', 'and', '#'],
+    MultiItemKeywords = [['sets'], ['vol', '#', 'and', 'vol', '#'], ['#', 'and', '#'],
                          ['collection', '#', '#'], ['set', 'of', '#'], ['seasons', '#', '#'],['vol','#','#'],['vol','#','#','#'],['vol','#','#','#','#'],['vol','#','#','#','#','#'],['vol','#','#','#','#','#','#'],['vol','#','#','#','#','#','#','#'],
                          ['seasons', '#', 'and', '#'], ['seasons'], ['bundle'], ['films'],['volumes'],['manga','+','anime'],
-                         ['anime','+','manga'], ['disc','#','disc','#'],[' + '],['multiple'],['titles'],['starter','set']]#Anime, The Empire Of Corpses Feature Film Blu-Ray DVD & Digital HD TVMA Unopened
+                         ['anime','+','manga'], ['disc','#','disc','#'],[' + '],['multiple'],['titles'],['starter','set'],['lot','of','#'],
+                         ['lot','of','two'],['lot','of','three'],['lot','of','four']]#Anime, The Empire Of Corpses Feature Film Blu-Ray DVD & Digital HD TVMA Unopened
     for Keyword in MultiItemKeywords:
         if " ".join(Keyword) in " ".join([("#" if float(a) < 1500 else a) if a.isdigit() else a for a in EditedTitle.split(" ")]):
             # print(Keyword)
@@ -565,7 +566,7 @@ def TitleToSearch (InputTitle,URL=None):
                         ['essential','collection','#'],['essential','collection'],['cartoon'],['pioneer'],['le'],
                         ['dts'],['orig'],['vg+'],['#>1500'],['e1','#'],['#','bd','disk'],['tv','series'],['tv'],['import'],['with','nendoroids','and','extras'],['with','dendoroids'],['with','extras'],['premium',"collector's",'edition'],['original','series'],
                         ['dream','works' ,"animation's"],['dreamworks','animation'],['-the','animation'],['juni','nishimura'],['with','all','promo','cells'],['korea'],['full','slip','keep','case'],['disney',"-animation","-collection"],['aniv','edition'],['anniversary','edition'],['anniv','edition'],
-                        ['sci','fi'],['fantasy'],['drama'],['thriller'],['clamp'],["dvd's",'#','#','#'],["dvd's",'#','#'],["dvd's",'#'],["#","#"],['with'],['ova'],['never','opened']]
+                        ['sci','fi'],['fantasy'],['drama'],['thriller'],['clamp'],["dvd's",'#','#','#'],["dvd's",'#','#'],["dvd's",'#'],["#","#"],['with'],['ova'],['never','opened'],['no','scraches']]
 
     for Word in DescriptiveWords:
         for EditedTitleIndex in range(len(EditedTitle)-len(Word)+1):
