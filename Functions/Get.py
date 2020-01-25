@@ -221,7 +221,7 @@ def Shipping(ItemLink,driver,ShippingDataBase,WebDriverPath):
 
         try:  # Read pricing data
             ShippingInfoRaw = str(WebDriverWait(driver, TimeoutTime).until(
-            EC.presence_of_element_located((By.XPATH, '//*[@id="' + "shippingSection" + '"]/table/tbody/tr/td'))).text)
+            EC.presence_of_element_located((By.XPATH, '//*[@id="' + "shippingSection" + '"]/table/tbody'))).text)
         except:  # Could not find pricing data reloading page
             continue
 
@@ -238,7 +238,7 @@ def Shipping(ItemLink,driver,ShippingDataBase,WebDriverPath):
         OutputPrice = re.findall("\d+\.\d+", str(ShippingInfoRaw))  # Match float string to text
 
         if (OutputPrice != []):  # If found string matching a price
-            OutputShippingPrice = float(OutputPrice[0])
+            OutputShippingPrice = min([float(a) for a in OutputPrice])
             Logs.Write(
                 "Get Shipping From Item Link: " + ItemLink + " Returned: " + str(
                     OutputShippingPrice))
