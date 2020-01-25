@@ -217,7 +217,7 @@ def Shipping(ItemLink,driver,ShippingDataBase,WebDriverPath):
             except:
                 continue
             time.sleep(  # Wait for page to reload after submit is clicked
-                random.uniform(WaitTimeBetweenButtons, WaitTimeBetweenButtons * 2) ** 2)
+                2 + random.uniform(WaitTimeBetweenButtons, WaitTimeBetweenButtons * 2) ** 2)
 
         try:  # Read pricing data
             ShippingInfoRaw = str(WebDriverWait(driver, TimeoutTime).until(
