@@ -47,7 +47,6 @@ def AddToGUI(Name,SearchName,Price,AvgPrice,ImageURL,PageURL,ComparisonData):
     #Comparison Data in format [[SearchURL1,SearchImage1,Name1,Price1],[SearchURL2,SearchImage2,Name2,Price2],...]
     global Display
     AddingData = [Name[1] if len(Name) == 1 else Name,SearchName[1] if len(SearchName) == 1 else SearchName,Price,AvgPrice,ImageURL,PageURL,ComparisonData]
-    print(AddingData)
     if(AddingData[0:2] not in [a[0:2] for a in Display]):
         Display.append(AddingData)
 
@@ -169,16 +168,6 @@ def Analisis(ItemsList):
             print(ItemTitle)
             print(ItemURL)
             Logs.Write("Error: 24, None type " + str(FinalSearchName) + " " + str(ItemTitle) + " " + str(ItemURL) + " " + str(ItemPrice) + " " + str(ItemShipping))
-            continue
-
-        # If multi item auction predicted
-        if(('collection' in ItemTitle.lower() or 'collection' in FinalSearchName or 'Multi Item Auction Found' == FinalSearchName) and Prices <= 0):
-            Info = [float(ItemPrice) + float(ItemShipping), str(ItemURL), str('Multi Item Auction Found' == FinalSearchName)]
-
-            if (Info not in Lot and UnixEndingStamp < time.time() + EndingSoon):
-                Lot.append(Info)
-                Logs.Write("Found Lot Item: " + str(Info))
-                AddToGUI(ItemName, FinalSearchName, str(float(ItemPrice)+float(ItemShipping)), '0', ItemPicture, ItemURL, [])
             continue
 
         if(Prices == -2): #Out of calls
