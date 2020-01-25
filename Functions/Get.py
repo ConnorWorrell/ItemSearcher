@@ -321,9 +321,6 @@ def AvgPrice(ItemLink,Title,OutOfCalls,Price,ErrorAppendSearchKeywords,EndTime,A
         try:
             # If not recalling and error revision number is incorrect remove item from database
 
-            # print("ErrorCheck")
-            # print(Search[0]["AvgPrice"])
-
             if(Recalling == None and Search[0]["ErrorRevision"] != CurrentErrorRevision):
                 print("Removed incorrect error revision number")
                 db.remove(User.CallText == CallText)
@@ -335,7 +332,6 @@ def AvgPrice(ItemLink,Title,OutOfCalls,Price,ErrorAppendSearchKeywords,EndTime,A
                 ErrorCode["EndTime"] = EndTime
                 ErrorCode["ItemLink"] = ItemLink
                 ErrorCode["ImageURL"] = ImageURL
-                # print("Errors")
                 dbErrors.insert(ErrorCode)
                 return Search[0]['AvgPrice'],CallText,Search[0]['SearchedItems']  # Success, returning previous Failure
         except:  # If something failed with the databases then recall, remove item if it has the wrong error revision
