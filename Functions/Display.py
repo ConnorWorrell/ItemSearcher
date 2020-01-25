@@ -546,7 +546,7 @@ def LoadImages(ImageURLsArray,ThreadCount=16):
     executor = concurrent.futures.ThreadPoolExecutor(ThreadCount)
     ItemsPerGroup = 3 #Items per group is the number of items that each thread is given to load before it is given a new set of items
     futures = [executor.submit(GetMultiImageData, group)for group in grouper(ItemsPerGroup, ImageURLsArray)]
-    concurrent.futures.wait(futures)
+    #concurrent.futures.wait(futures)
 
 def StartupLast():
     StartupThreaded(TestImageURL)
