@@ -271,8 +271,8 @@ def AvgPrice(ItemLink,Title,OutOfCalls,Price,ErrorAppendSearchKeywords,EndTime,A
         TitleSearch = TitleToSearch(Title,URL=ItemLink)  # Grab simplified title to search by
         CallText = TitleSearch
 
-    if(TitleSearch == True):  # If TitleToSearch predicts the auction has multiple items in it
-        return -1,"Multi Item Auction Found",[]  # Failure, avg price is inconsistent for multi item sales
+    if("Multi Item Auction Found" in TitleSearch):  # If TitleToSearch predicts the auction has multiple items in it
+        return -1,TitleSearch,[]  # Failure, avg price is inconsistent for multi item sales
 
     Search = db.search(User.CallText == CallText)  # Check if avg price is in database
 
@@ -484,7 +484,7 @@ def AvgPrice(ItemLink,Title,OutOfCalls,Price,ErrorAppendSearchKeywords,EndTime,A
 # Title to search take in a title and returns a simplified title
 # URL is only used for adding item URL to log
 # Success: Title Successfully Simplified : (str)
-# Success: Multi Item Auction : True
+# Success: Multi Item Auction : "Multi Item Auction Found" + str(Matched Value)
 def TitleToSearch (InputTitle,URL=None):
     MultiItemAuction = False
     Title = []

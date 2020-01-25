@@ -151,16 +151,13 @@ def Analisis(ItemsList):
                 continue
 
         global Lot
-        if('lot' in ItemTitle.lower()):  # If item is clearly a multi item auction
-            Info = [float(ItemPrice) + float(ItemShipping), str(ItemURL),str(False)]
+        Prices,FinalSearchName,SearchedItems = Get.AvgPrice(ItemURL,ItemTitle,OutOfCalls,float(ItemPrice) + float(ItemShipping),ItemSearchKeywords,float(UnixEndingStamp),AvgPriceDataBase,ErrorsDataBase,UPCDataBase,ImageURL = ItemPicture)
 
-            if(Info not in Lot and UnixEndingStamp < time.time()+EndingSoon):
-                Lot.append(Info)  # Store item info in Lot variable and in GUI
-                Logs.Write("Found Lot Item: " + str(Info))
-                AddToGUI(ItemName, '', str(float(ItemPrice)+float(ItemShipping)), '0', ItemPicture, ItemURL, [])
-            continue
-        else:  # Item is probably a single item
-            Prices,FinalSearchName,SearchedItems = Get.AvgPrice(ItemURL,ItemTitle,OutOfCalls,float(ItemPrice) + float(ItemShipping),ItemSearchKeywords,float(UnixEndingStamp),AvgPriceDataBase,ErrorsDataBase,UPCDataBase,ImageURL = ItemPicture)
+        if('Multi Item Auction Found' in FinalSearchName):
+            Info = [float(ItemPrice) + float(ItemShipping), str(ItemURL), str(False)]
+            Lot.append(Info)  # Store item info in Lot variable and in GUI
+            Logs.Write("Found Lot Item: " + str(Info))
+            AddToGUI(ItemName, FinalSearchName, str(float(ItemPrice) + float(ItemShipping)), "", ItemPicture, ItemURL, [])
 
         if(FinalSearchName == None or ItemTitle == None):  # Issues getting specific item names
             print("Error: 24, None type")
