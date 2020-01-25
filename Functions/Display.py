@@ -492,6 +492,30 @@ def Startup(InputSet):
 
     MainWindow.bind("<Configure>", on_resize)
 
+    PreviousEnter = None
+    def EnterButtonPressed(d):
+        print(d)
+        if(PreviousEnter == "Search"):
+            Search(TextBox.get("1.0", 'end-1c'))
+            TextBox.delete("1.0", END)
+        elif(PreviousEnter == "Skip"):
+            SkipTo(SkipTextBox.get("1.0", 'end-1c'))
+            SkipTextBox.delete("1.0", END)
+
+    def SearchBoxEntered(d):
+        print(d)
+        nonlocal  PreviousEnter
+        PreviousEnter = "Search"
+
+    def SkipBoxEntered(d):
+        print(d)
+        nonlocal PreviousEnter
+        PreviousEnter = "Skip"
+
+    MainWindow.bind('<Return>', EnterButtonPressed)
+    TextBox.bind("<Enter>",SearchBoxEntered)
+    SkipTextBox.bind("<Enter>", SkipBoxEntered)
+
     # Startup Main Window
     MainWindow.mainloop()
 
