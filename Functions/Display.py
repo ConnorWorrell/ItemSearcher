@@ -170,6 +170,7 @@ def PackText(Text,X,Y):
 #  Potential Improvements: cache a list of all images instead of checking each time.
 #  Other: Maby save image at full scale or some larger scale so that if a low res image is requested once and then
 #         a high res is requested the high res is not the low res upscaled.
+ImageCache = {}
 def GetImageData(ImageURL,MaxHeight=700,MaxWidth=500):
 
     ChacheURL = ImageURL[0:len(ImageURL)] #duplicate ImageURL string
@@ -177,14 +178,18 @@ def GetImageData(ImageURL,MaxHeight=700,MaxWidth=500):
     #Local version replaces /'s with :'s so http://photo.jpg is stored as http:::photo.jpg
     ChacheURL = ChacheURL.replace("/","").replace(":",'')
 
+    if(ChacheURL in ImageCache):
+        image = ImageCache[ChacheURL]
+        save = 0
     #Check if photo is stored locally
-    if(os.path.exists(PhotoCacheDirectory + '/' + ChacheURL)):
+    elif(os.path.exists(PhotoCacheDirectory + '/' + ChacheURL)):
         #If photo is stored locally load photo into image
         try:
             image = Image.open(PhotoCacheDirectory + '/' + ChacheURL)
         except:
             return None # if inable to load photo return None (Error State)
         save = 0 # Save is used to determine if the photo should be saved later (0 is Already saved)
+
     else:
         response = requests.get(ImageURL) # Grab image from URL
         image = Image.open(BytesIO(response.content))
@@ -209,6 +214,7 @@ def GetImageData(ImageURL,MaxHeight=700,MaxWidth=500):
     if(save == 1): # If save was set earlier then save the image
         image.save(PhotoCacheDirectory + "/" + str(ChacheURL))
 
+    ImageCache[ChacheURL] = image
     return image
 
 
