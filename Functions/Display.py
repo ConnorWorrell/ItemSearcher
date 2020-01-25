@@ -519,4 +519,26 @@ def LoadImages(ImageURLsArray,ThreadCount=16):
     concurrent.futures.wait(futures)
 
 def StartupLast():
-    Startup(TestImageURL)
+    StartupThreaded(TestImageURL)
+
+def StartupThreaded(InputSet):
+    import threading
+
+    class FuncThread(threading.Thread):
+        def __init__(self, target, *args):
+            self._targets = target
+            self._argss = args
+            threading.Thread.__init__(self)
+
+        def run(self):
+            self._targets(*self._argss)
+
+    def someOtherFunc(data, key):
+        print(
+        "someOtherFunc was called : data=%s; key=%s" % (str(data), str(key)))
+
+    DisplayThread = FuncThread(Startup,InputSet)
+    DisplayThread.start()
+    # DisplayThread.join()
+
+    print('hi')
