@@ -84,6 +84,7 @@ def Add(Path,DB,Value):
 
     DataBaseWrites[Path] = DataBaseWrites[Path] + 1
     if(DataBaseWrites[Path] >= DatabaseWritesBeforePush):
+        DataBaseWrites[Path] = 0
         Dump(Path,DB)
 
 def AddUPCDataBase(Value):
@@ -206,5 +207,19 @@ def RemoveCallDataBase(RemoveObject):
 def OnExit():
     End()
 
-Startup()
+def Test():
+    ClearErrorsDataBase()
 
+    import time
+    for i in range(100):
+        StartTime = time.time()
+        for a in range(100):
+            AddErrorsDataBase({"Name":str(i*a),"Value1":i,"Value2":a-10})
+        CycleTime = time.time()-StartTime
+        print(CycleTime)
+
+    for i in range(100):
+        print(FindErrorsDataBase({"Name":str(i*20)}))
+
+Startup()
+Test()
