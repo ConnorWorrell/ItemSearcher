@@ -533,10 +533,6 @@ def StartupThreaded(InputSet):
         def run(self):
             self._targets(*self._argss)
 
-    def someOtherFunc(data, key):
-        print(
-        "someOtherFunc was called : data=%s; key=%s" % (str(data), str(key)))
-
     DisplayThread = FuncThread(Startup,InputSet)
     DisplayThread.start()
 
