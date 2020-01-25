@@ -125,6 +125,9 @@ def Shipping(ItemLink,driver,ShippingDataBase,WebDriverPath):
 
     for i in range(Retries):  # Number of attempts
 
+        time.sleep(  # Wait for page to load before interacting
+            1 + random.uniform(WaitTimeBetweenButtons, WaitTimeBetweenButtons * 2) ** 2)
+
         TimeoutTime = TimeoutTime * 2  # If failed to scrape double the timeout
         try:  # Loading page, restarting driver if its closed
             driver.get(ItemLink)
@@ -133,7 +136,11 @@ def Shipping(ItemLink,driver,ShippingDataBase,WebDriverPath):
             driver.get(ItemLink)
 
         time.sleep(  # Wait for page to load before interacting
-            random.uniform(WaitTimeBetweenButtons, WaitTimeBetweenButtons * 2) ** 2)
+            1 + random.uniform(WaitTimeBetweenButtons, WaitTimeBetweenButtons * 2) ** 2)
+
+        if(driver.current_url != ItemLink):
+            print("URL's dont match" + driver.current_url + "  |  " + ItemLink)
+            continue
 
         try:  # Check for item having ended way 1
             MissingListing1 = WebDriverWait(driver, TimeoutTime).until(
