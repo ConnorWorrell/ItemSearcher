@@ -539,6 +539,4 @@ def StartupThreaded(InputSet):
 
     DisplayThread = FuncThread(Startup,InputSet)
     DisplayThread.start()
-    # DisplayThread.join()
 
-    print('hi')
