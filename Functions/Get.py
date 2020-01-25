@@ -536,9 +536,17 @@ def TitleToSearch (InputTitle,URL=None):
                          ['anime','+','manga'], ['disc','#','disc','#'],[' + '],['multiple'],['titles'],['starter','set'],['lot','of','#'],
                          ['lot','of','two'],['lot','of','three'],['lot','of','four']]#Anime, The Empire Of Corpses Feature Film Blu-Ray DVD & Digital HD TVMA Unopened
     for Keyword in MultiItemKeywords:
-        if " ".join(Keyword) in " ".join([("#" if float(a) < 1500 else a) if a.isdigit() else a for a in EditedTitle.split(" ")]):
-            # print(Keyword)
-            return True
+        EditedTitleSearch = [("#" if float(a) < 1500 else a) if a.isdigit() else a for a in EditedTitle.split(" ")]
+        RemovalCount = 0
+        for i in range(len(EditedTitleSearch)):
+            if EditedTitleSearch[i - RemovalCount] == "":
+                EditedTitleSearch.pop(i - RemovalCount)
+                RemovalCount = RemovalCount + 1
+        for SearchSetIndex in range(len(EditedTitleSearch) - len(Keyword) + 1):
+            # print(str(Keyword) + "  |  " + str(EditedTitleSearch[SearchSetIndex:SearchSetIndex+len(Keyword)]))
+            if Keyword == EditedTitleSearch[SearchSetIndex:SearchSetIndex+len(Keyword)]:
+                # print(str(Keyword) + "  |  " + str([("#" if float(a) < 1500 else a) if a.isdigit() else a for a in EditedTitle.split(" ")]))
+                return "Multi Item Auction Found " + str(" ".join(Keyword))
 
     EditedTitle = EditedTitle.split(" ")
 
