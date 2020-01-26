@@ -46,7 +46,7 @@ Display = []
 Quitting = False
 def CheckForSafeQuit():
     print("Starting Save Quit Listener")
-    while True:
+    while Quitting == False:
         Input = input()  # If any input is given then set quitting global variable to true and stop thread
         print("Quitting")
         global Quitting
@@ -299,6 +299,8 @@ if __name__ == "__main__":
         json.dump(Display, out_file)
 
     DB.End()
+
+    Quitting = True
 
     print("Starting Display")
     Disp.Startup(Display)  # Start GUI
