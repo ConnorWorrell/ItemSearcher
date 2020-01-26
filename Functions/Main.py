@@ -11,6 +11,7 @@ import sys
 import datetime
 import statistics
 import json
+import threading
 
 Discount = .7  # Minimum percent of original price, avg of 10$ item will need to be below 7$ if .7 is used
 SpecificProductDiscount = 2  # Percent of origional price for items in specific item section
@@ -41,6 +42,18 @@ Errors = []
 Lot = []
 Display = []
 
+Quitting = False
+def CheckForSafeQuit():
+    print("Starting Save Quit Listener")
+    while True:
+        Input = input()
+        print("Quitting")
+        global Quitting
+        Quitting = True
+        quit()
+
+QuitThread = threading.Thread(target=CheckForSafeQuit)
+QuitThread.start()
 
 # AddToGUI adds items to the Display global variable in the correct format for the GUI to display later
 def AddToGUI(Name,SearchName,Price,AvgPrice,ImageURL,PageURL,ComparisonData):
@@ -61,6 +74,10 @@ def TotalSearch(SearchingTitle,SearchNonAuctions):
     dbSearches = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/DataBase/Searches/" + DBName)
 
     for SearchingNonAuctions in range(SearchNonAuctions+1): # Runs once if only auctions and twice if everything
+
+        global Quitting
+        if (Quitting):
+            quit()
 
         if SearchingNonAuctions == 0:  # If Searching auctions
             AuctionSearch = 1  # Searching Auctions
@@ -96,6 +113,11 @@ def Analisis(ItemsList):
     LastCycle = time.time()*2  # Record cycle time for time predictions
     RecordedCycleTime = []  # Initilize empty time per cycle array
     for Item in range(CallCount):  # For every item
+
+        global Quitting
+        if(Quitting):
+            quit()
+
         CycleTime = time.time() - LastCycle  # Calculate time it took for last item to be analized
         RecordedCycleTime.append(CycleTime)  # Keep track of number
 

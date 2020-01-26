@@ -80,7 +80,8 @@ def PushCallDataBase():
 
 
 def Add(Path,DB,Value):
-    DB["_default"][str(len(DB["_default"]) + 1)] = Value
+    nextNumber = (max([int(a) for a in DB["_default"].keys()])+1)
+    DB["_default"][str(nextNumber)] = Value
 
     DataBaseWrites[Path] = DataBaseWrites[Path] + 1
     if(DataBaseWrites[Path] >= DatabaseWritesBeforePush):
@@ -222,4 +223,6 @@ def Test():
         print(FindErrorsDataBase({"Name":str(i*20)}))
 
 Startup()
-Test()
+# ClearErrorsDataBase()
+# AddErrorsDataBase({"Test":"hi3"})
+# RemoveErrorsDataBase({"Test":"hi3"})
