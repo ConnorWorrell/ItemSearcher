@@ -6,6 +6,7 @@ import Logs
 from tinydb import TinyDB, Query
 from datetime import datetime
 from tinydb.operations import increment
+import DataBaseCustom as DB
 
 ########################################################################################################################
 # Ebay.py

@@ -11,6 +11,7 @@ import sys
 import datetime
 import statistics
 import json
+import DataBaseCustom as DB
 import threading
 
 Discount = .7  # Minimum percent of original price, avg of 10$ item will need to be below 7$ if .7 is used
@@ -95,7 +96,6 @@ def Analisis(ItemsList):
     global MaxCalls
     driver = None
 
-    UPCDataBase = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/DataBase/LinkToUPC")
     ShippingDataBase = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/DataBase/LinkToShipping")
     AvgPriceDataBase = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/DataBase/LinkToAvgPrice")
     ErrorsDataBase = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/Logs/Errors")
@@ -133,7 +133,7 @@ def Analisis(ItemsList):
         ItemSearchKeywords = ItemsList[Item]['SearchKeywords']
         ItemURL = ItemsList[Item]['viewItemURL'][0]
         ItemTitle = ItemsList[Item]['title'][0]
-        ItemUPC = Get.UPC(ItemURL,UPCDataBase)
+        ItemUPC = Get.UPC(ItemURL)
         ItemPrice = ItemsList[Item]['sellingStatus'][0]['convertedCurrentPrice'][0]['__value__']
         ItemShippingType = ItemsList[Item]['shippingInfo'][0]['shippingType'][0]
         try:
@@ -173,7 +173,7 @@ def Analisis(ItemsList):
                 continue
 
         global Lot
-        Prices,FinalSearchName,SearchedItems = Get.AvgPrice(ItemURL,ItemTitle,OutOfCalls,float(ItemPrice) + float(ItemShipping),ItemSearchKeywords,float(UnixEndingStamp),AvgPriceDataBase,ErrorsDataBase,UPCDataBase,ImageURL = ItemPicture)
+        Prices,FinalSearchName,SearchedItems = Get.AvgPrice(ItemURL,ItemTitle,OutOfCalls,float(ItemPrice) + float(ItemShipping),ItemSearchKeywords,float(UnixEndingStamp),AvgPriceDataBase,ErrorsDataBase,ImageURL = ItemPicture)
 
         if('Multi Item Auction Found' in FinalSearchName):
             Info = [float(ItemPrice) + float(ItemShipping), str(ItemURL), str(False)]
@@ -223,6 +223,7 @@ if __name__ == "__main__":
     Logs.New()
     Ebay.New()
 
+    # DB.ClearErrorsDataBase()
     dbErrors = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/Logs/Errors")
     dbErrors.purge_tables()  # Reset Errors Data Base
 
@@ -248,6 +249,7 @@ if __name__ == "__main__":
     # Get all the errors into one variable
     dbErrors = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/Logs/Errors")
     dbErrorsTable = dbErrors.table().all()
+    # dbErrorsTable = DB.AllErrorsDataBase()
     for a in range(len(dbErrorsTable)):
         try:
             dbErrorsTable[a]['Price']
@@ -292,6 +294,8 @@ if __name__ == "__main__":
     DisplayDataPosition = str(os.path.dirname(os.path.dirname(__file__))) + '/DataBase/DisplayData.txt'
     with open(DisplayDataPosition, 'w') as out_file:
         json.dump(Display, out_file)
+
+    DB.End()
 
     print("Starting Display")
     Disp.Startup(Display)  # Start GUI

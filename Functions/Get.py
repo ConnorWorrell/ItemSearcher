@@ -13,6 +13,7 @@ import Ebay
 import statistics
 import os
 import json
+import DataBaseCustom as DB
 
 ########################################################################################################################
 # Get.py
@@ -44,16 +45,19 @@ ReceivingZipCode = Passwords['ReceivingZipCode']
 # convert URLs to UPCs
 # Success: returns UPC Code ie: "1234567890"
 # Failure: returns -1
-def UPC(ItemLink,UPCDataBase):
+def UPC(ItemLink,UPCDataBase = None):
     Retries = 5  # Number of times that getting the UPC will be attempted before giving up
     SleepTime = 1  # Time in seconds to delay between failed attempts (doubling each attempt)
 
     ItemLink = ItemLink.split('?')[0]  # Remove un-needed information from URL link
 
-    db = UPCDataBase
-    User = Query()
+    # db = UPCDataBase
+    # User = Query()
 
-    Search = db.search(User.Link == ItemLink)  # Search for URL in database
+    # Search = db.search(User.Link == ItemLink)  # Search for URL in database
+
+    Search = DB.FindUPCDataBase({"Link":ItemLink})
+
     if(Search != []):  # If search returns something return database UPC
         Logs.Write("Get UPC From Item Link: " + ItemLink + " Cache: " + str(Search[0]['UPC']))
         return Search[0]['UPC']
@@ -79,20 +83,23 @@ def UPC(ItemLink,UPCDataBase):
 
     if (UPC_Find == None): # If page didn't include UPC information
         UPC = -1 # Failure to get UPC code
-        db.insert({'Link': ItemLink,'UPC': UPC, "Time": time.time()})
+        DB.AddUPCDataBase({'Link': ItemLink,'UPC': UPC, "Time": time.time()})
+        # db.insert({'Link': ItemLink,'UPC': UPC, "Time": time.time()})
         Logs.Write("Get UPC From Item Link: " + ItemLink + " Returned: No UPC")
         return UPC  # Failure to find UPC
 
     UPC = UPC_Find.contents[0]
     if (UPC.isdigit() == False): # If page found UPC code but it dosen't match up with expected codes
         UPC = -1 # Failure to get UPC Code
-        db.insert({'Link': ItemLink,'UPC': UPC, "Time": time.time()})
+        DB.AddUPCDataBase({'Link': ItemLink,'UPC': UPC, "Time": time.time()})
+        # db.insert({'Link': ItemLink,'UPC': UPC, "Time": time.time()})
         Logs.Write("Get UPC From Item Link: " + ItemLink + " Returned: No UPC")
         return UPC  # Failure to find UPC
 
     # UPC is found and it is in expected format
     # Place UPC into database
-    db.insert({'Link': ItemLink,'UPC': UPC, "Time": time.time()})
+    DB.AddUPCDataBase({'Link': ItemLink,'UPC': UPC, "Time": time.time()})
+    # db.insert({'Link': ItemLink,'UPC': UPC, "Time": time.time()})
 
     Logs.Write("Get UPC From Item Link: " + ItemLink + " Returned: " + str(UPC))
     return UPC  # Success finding UPC
@@ -113,12 +120,13 @@ def Shipping(ItemLink,driver,ShippingDataBase,WebDriverPath):
 
     ItemLink = ItemLink.split('?')[0]  # Remove un-necessary information from URL
 
-    db = ShippingDataBase
-    User = Query()
+    # db = ShippingDataBase
+    # User = Query()
 
     Logs.Write("Starting Getting Shipping for " + ItemLink)
 
-    Search = db.search(User.Link == ItemLink)  # Look in database for shipping information
+    Search = DB.FindShippingDataBase({"Link":ItemLink})
+    # Search = db.search(User.Link == ItemLink)  # Look in database for shipping information
     if (Search != []):  # If shipping information is found in database
         Logs.Write("Get Shipping From Item Link: " + ItemLink + " Cache: " + str(Search[0]['Shipping']))
         return Search[0]['Shipping'],driver # Success, found in database
@@ -148,8 +156,9 @@ def Shipping(ItemLink,driver,ShippingDataBase,WebDriverPath):
                     (By.XPATH, '//*[@id="' + "w3" + '"]/div/div/div/div/span/span'))).text
             if ("The listing you're looking for has ended." in MissingListing1):
                 Logs.Write("Get Shipping From Item Link: " + ItemLink + " Returned: Item Auction Ended")
-                db.insert(
-                    {'Link': ItemLink, 'Shipping': -1, 'Raw': -1, "Time": time.time()})
+                DB.AddShippingDataBase({'Link': ItemLink, 'Shipping': -1, 'Raw': -1, "Time": time.time()})
+                # db.insert(
+                #     {'Link': ItemLink, 'Shipping': -1, 'Raw': -1, "Time": time.time()})
                 return -1,driver  # Failure, item listing has ended
         except:  # Passes check
             pass
@@ -160,8 +169,9 @@ def Shipping(ItemLink,driver,ShippingDataBase,WebDriverPath):
                     (By.XPATH, '//*[@id="' + "mainContent-w0-w0-0" + '"]/div/div/span'))).text
             if("The listing you're looking for has ended." in MissingListing2):
                 Logs.Write("Get Shipping From Item Link: " + ItemLink + " Returned: Item Auction Ended")
-                db.insert(
-                    {'Link': ItemLink, 'Shipping': -1, 'Raw': -1, "Time": time.time()})
+                DB.AddShippingDataBase({'Link': ItemLink, 'Shipping': -1, 'Raw': -1, "Time": time.time()})
+                # db.insert(
+                #     {'Link': ItemLink, 'Shipping': -1, 'Raw': -1, "Time": time.time()})
                 return -1, driver  # Failure, item listing has ended
         except:  # Passes Check
             pass
@@ -172,8 +182,9 @@ def Shipping(ItemLink,driver,ShippingDataBase,WebDriverPath):
                     (By.XPATH, '//*[@id="' + "vi-acc-shpsToLbl-cnt" + '"]/span'))).text
             if('Worldwide' not in ShippingText and 'United States' not in ShippingText):
                 Logs.Write("Get Shipping From Item Link: " + ItemLink + " Returned: Item does not ship to US")
-                db.insert(
-                    {'Link': ItemLink, 'Shipping': -1, 'Raw': -1, "Time": time.time()})
+                DB.AddShippingDataBase({'Link': ItemLink, 'Shipping': -1, 'Raw': -1, "Time": time.time()})
+                # db.insert(
+                #     {'Link': ItemLink, 'Shipping': -1, 'Raw': -1, "Time": time.time()})
                 return -1, driver  # Failure, item does not ship to the USA
             # Passes check, does ship to USA
         except:  # Unable to find item, reloading page
@@ -192,8 +203,9 @@ def Shipping(ItemLink,driver,ShippingDataBase,WebDriverPath):
                 EC.presence_of_element_located((By.XPATH, '//*[@id="' + "shCost-err" + '"]'))).text)
             if "seller has not specified shipping options" in text:
                 Logs.Write("Get Shipping From Item Link: " + ItemLink + " Returned: Unspecified Shipping")
-                db.insert(
-                    {'Link': ItemLink, 'Shipping': -1, 'Raw': -1, "Time": time.time()})
+                DB.AddShippingDataBase({'Link': ItemLink, 'Shipping': -1, 'Raw': -1, "Time": time.time()})
+                # db.insert(
+                #     {'Link': ItemLink, 'Shipping': -1, 'Raw': -1, "Time": time.time()})
                 return -1, driver  # Seller did not pick a shipping option
             # Seller picked a shipping option
         except:
@@ -227,12 +239,14 @@ def Shipping(ItemLink,driver,ShippingDataBase,WebDriverPath):
 
         if ('Free shipping' in ShippingInfoRaw):  # Check for free shipping
             Logs.Write("Get Shipping From Item Link: " + ItemLink + " Returned: Free Shipping")
-            db.insert({'Link': ItemLink, 'Shipping': 0, 'Raw': ShippingInfoRaw, "Time": time.time()})
+            DB.AddShippingDataBase({'Link': ItemLink, 'Shipping': 0, 'Raw': ShippingInfoRaw, "Time": time.time()})
+            # db.insert({'Link': ItemLink, 'Shipping': 0, 'Raw': ShippingInfoRaw, "Time": time.time()})
             return 0,driver  # Success, item has free shipping
 
         if ('US' not in ShippingInfoRaw[0:5]):  # Check for currency that is not USD
             Logs.Write("Get Shipping From Item Link: " + ItemLink + " Returned: Shipping Price In Forien Currency: " + str(ShippingInfoRaw))
-            db.insert({'Link': ItemLink, 'Shipping': -1, 'Raw': ShippingInfoRaw, "Time": time.time()})
+            DB.AddShippingDataBase({'Link': ItemLink, 'Shipping': -1, 'Raw': ShippingInfoRaw, "Time": time.time()})
+            # db.insert({'Link': ItemLink, 'Shipping': -1, 'Raw': ShippingInfoRaw, "Time": time.time()})
             return -1,driver  # Failure, item does not use us currency
 
         OutputPrice = re.findall("\d+\.\d+", str(ShippingInfoRaw))  # Match float string to text
@@ -242,10 +256,12 @@ def Shipping(ItemLink,driver,ShippingDataBase,WebDriverPath):
             Logs.Write(
                 "Get Shipping From Item Link: " + ItemLink + " Returned: " + str(
                     OutputShippingPrice))
-            db.insert({'Link': ItemLink, 'Shipping': OutputShippingPrice, 'Raw': ShippingInfoRaw, "Time": time.time()})
+            DB.AddShippingDataBase({'Link': ItemLink, 'Shipping': OutputShippingPrice, 'Raw': ShippingInfoRaw, "Time": time.time()})
+            # db.insert({'Link': ItemLink, 'Shipping': OutputShippingPrice, 'Raw': ShippingInfoRaw, "Time": time.time()})
             return OutputShippingPrice,driver  # Success, found shipping price
 
-    db.insert({'Link': ItemLink, 'Shipping': -1, 'Raw': None, "Time": time.time()})
+    DB.AddShippingDataBase({'Link': ItemLink, 'Shipping': -1, 'Raw': None, "Time": time.time()})
+    # db.insert({'Link': ItemLink, 'Shipping': -1, 'Raw': None, "Time": time.time()})
     return -1,driver  # Failed after number of attempts
 
 
@@ -253,28 +269,31 @@ def Shipping(ItemLink,driver,ShippingDataBase,WebDriverPath):
 # Note: 3 identical sections of code that could be condensed
 # Success: (float), Found new avg price, Found cached avg price, Could not find new avg price but had old avg price
 # Failure: Multi Item Auction Predicted : -1, Out Of Calls : -2, No items found : -1, No items sold : -1
-def AvgPrice(ItemLink,Title,OutOfCalls,Price,ErrorAppendSearchKeywords,EndTime,AVGPriceDB,ErrorsDB,UPCDataBase,ImageURL = ""):
+def AvgPrice(ItemLink,Title,OutOfCalls,Price,ErrorAppendSearchKeywords,EndTime,AVGPriceDB,ErrorsDB,UPCDataBase=None,ImageURL = ""):
     CurrentErrorRevision = 4 # Stored in database incase new things need to be added
     Recalling = None
 
-    db = AVGPriceDB
+    # db = AVGPriceDB
     dbErrors = ErrorsDB
 
-    User = Query()
+    # User = Query()
 
     if(ItemLink == None):  # If no item link is given
         TitleSearch = Title  # Searching based on title
         UPCCode = -1
         CallText = TitleSearch
     else:  # Item link is given
-        UPCCode = UPC(ItemLink,UPCDataBase)  # Grab UPC of item
+        UPCCode = UPC(ItemLink)  # Grab UPC of item
         TitleSearch = TitleToSearch(Title,URL=ItemLink)  # Grab simplified title to search by
         CallText = TitleSearch
 
     if("Multi Item Auction Found" in TitleSearch):  # If TitleToSearch predicts the auction has multiple items in it
         return -1,TitleSearch,[]  # Failure, avg price is inconsistent for multi item sales
 
-    Search = db.search(User.CallText == CallText)  # Check if avg price is in database
+    Search = DB.FindAvgDataBase({"CallText":CallText})
+    # Search = db.search(User.CallText == CallText)  # Check if avg price is in database
+
+    # print(Search)
 
     if (Search != []):  # If avg price Cached grab from database
         RecallTime = float(60 * 60 * 24 * 7)  # Time between when avg price is stored to next time it is updated
@@ -286,9 +305,11 @@ def AvgPrice(ItemLink,Title,OutOfCalls,Price,ErrorAppendSearchKeywords,EndTime,A
             Recalling = 1  # Recall the avg price
             print("Missing Revision")
             try:
-                db.remove(User.CallText == CallText)  # Remove the item from the database
+                DB.RemoveAvgDataBase({"CallText":CallText})
+                # db.remove(User.CallText == CallText)  # Remove the item from the database
             except:
-                db.remove(User.Link == CallText)  # Remove the item from the database
+                DB.RemoveAvgDataBase({"Link": CallText})
+                # db.remove(User.Link == CallText)  # Remove the item from the database
 
         # Check if it should recalling AVG Price for Item with previous avg price
         if (Recalling == None and float(Search[0]["Time"]) + RecallTime < time.time() and Search[0]['AvgPrice'] > 0):
@@ -303,6 +324,7 @@ def AvgPrice(ItemLink,Title,OutOfCalls,Price,ErrorAppendSearchKeywords,EndTime,A
         # Check if error revision number is the correct number, if it is then the cached avg price is still valid
         elif(Recalling == None and Search[0]["ErrorRevision"] == CurrentErrorRevision and float(Search[0]['AvgPrice']) > 0):
             Logs.Write("Get AVG Price from UPC: " + str(CallText) + " Cache: " + str(Search[0]['AvgPrice']))
+            # print("Avg Price Cached")
             return Search[0]['AvgPrice'], CallText,Search[0]['SearchedItems']  # Success, cached price
 
         if(len(Search) > 1):  # If multiple items are found, this mean a mistake occured and duplicate
@@ -312,18 +334,22 @@ def AvgPrice(ItemLink,Title,OutOfCalls,Price,ErrorAppendSearchKeywords,EndTime,A
 
             for i in range(len(Search)):  # Remove duplicate entries and recall
                 try:
-                    db.remove(User.CallText == CallText)
-                    print("Removed Extra")
+                    DB.RemoveAvgDataBase({"CallText": CallText})
+                    # db.remove(User.CallText == CallText)
+                    print("Removed Extra Text")
+                    Recalling = 0
                 except:
-                    db.remove(User.Link == CallText)
-                    print("Removed Extra")
+                    DB.RemoveAvgDataBase({"Link": CallText})
+                    # db.remove(User.Link == CallText)
+                    print("Removed Extra Link")
 
         try:
             # If not recalling and error revision number is incorrect remove item from database
 
             if(Recalling == None and Search[0]["ErrorRevision"] != CurrentErrorRevision):
                 print("Removed incorrect error revision number")
-                db.remove(User.CallText == CallText)
+                DB.RemoveAvgDataBase({"CallText": CallText})
+                # db.remove(User.CallText == CallText)
 
             # If not recalling and cached avg price was -1 (Error or Unable to find price)
             elif(Recalling == None and Search[0]['AvgPrice'] < 0):
@@ -332,12 +358,17 @@ def AvgPrice(ItemLink,Title,OutOfCalls,Price,ErrorAppendSearchKeywords,EndTime,A
                 ErrorCode["EndTime"] = EndTime
                 ErrorCode["ItemLink"] = ItemLink
                 ErrorCode["ImageURL"] = ImageURL
-                dbErrors.insert(ErrorCode)
+
+                # DB.AddAvgDataBase(ErrorCode)
+                # dbErrors.insert(ErrorCode)
                 return Search[0]['AvgPrice'],CallText,Search[0]['SearchedItems']  # Success, returning previous Failure
+
         except:  # If something failed with the databases then recall, remove item if it has the wrong error revision
             if (Recalling == None and Search[0]["ErrorRevision"] != CurrentErrorRevision):
                 print("Removed2")
-                db.remove(User.Link == CallText)
+
+                DB.RemoveAvgDataBase({"Link": CallText})
+                # db.remove(User.Link == CallText)
 
 
     if(OutOfCalls == 1):  # If out of calls
@@ -359,9 +390,12 @@ def AvgPrice(ItemLink,Title,OutOfCalls,Price,ErrorAppendSearchKeywords,EndTime,A
             print(CallText)  # If unable to get Count from responce
             if ('Keyword or category ID are required.' in str(Responce)):
                 print('Keyword or category ID are required')
-                db.insert({'CallText': CallText, "ItemTitle": Title, 'AvgPrice': -1, "Time": time.time(),
+                DB.AddAvgDataBase({'CallText': CallText, "ItemTitle": Title, 'AvgPrice': -1, "Time": time.time(),
                            "Error": "Keyword or category ID are required", "ErrorRevision": CurrentErrorRevision,
                            "ItemLink": ItemLink, "Price": Price})
+                # db.insert({'CallText': CallText, "ItemTitle": Title, 'AvgPrice': -1, "Time": time.time(),
+                #            "Error": "Keyword or category ID are required", "ErrorRevision": CurrentErrorRevision,
+                #            "ItemLink": ItemLink, "Price": Price})
                 return -1, None,[]  # Failure
 
             print("Used All Calls" + str(Responce))
@@ -443,7 +477,8 @@ def AvgPrice(ItemLink,Title,OutOfCalls,Price,ErrorAppendSearchKeywords,EndTime,A
                 pass
 
     if (Recalling == 1 and Prices != []):  # If recalling item with previous avg price and new avg price found
-        db.remove(User.CallText == CallText)  # remove previous avg price
+        DB.RemoveAvgDataBase({"CallText": CallText})
+        # db.remove(User.CallText == CallText)  # remove previous avg price
         print("Recalling: " + str(Search[0]))
     elif(Recalling == 1):  # If recalling item with previous avg price but no new avg price found
         print("Had Past price for item, but couldn't find new price: " + str(Search[0]))
@@ -453,30 +488,37 @@ def AvgPrice(ItemLink,Title,OutOfCalls,Price,ErrorAppendSearchKeywords,EndTime,A
             SearchedItemsKeyErrorFailure=0
         except:  # If previous search did not have Searched items then remove it from the data base
             SearchedItemsKeyErrorFailure=1
-            db.remove(User.CallText == CallText)
+            DB.RemoveAvgDataBase({"CallText": CallText})
+            # db.remove(User.CallText == CallText)
         if(SearchedItemsKeyErrorFailure == 0):  # If previous search had searched items then
             NewCall = Search[0]  # refresh search in database, wait another time period before searching again
             NewCall["Time"] = time.time()
-            db.remove(User.CallText == CallText)
-            db.insert(NewCall)
+            DB.RemoveAvgDataBase({"CallText": CallText})
+            # db.remove(User.CallText == CallText)
+            DB.AddAvgDataBase(NewCall)
+            # db.insert(NewCall)
 
             return Search[0]['AvgPrice'],CallText,Search[0]['SearchedItems']  # Success, returned old avg price
 
     elif(Recalling == 0):  # If recalling item with no previous average price, then remove db entry
-        db.remove(User.CallText == CallText)
+        DB.RemoveAvgDataBase({"CallText": CallText})
+        # db.remove(User.CallText == CallText)
 
     if Count == 0 and (Count1 == 0 and Count2 == 0):  # If no items were found using Title or UPC
-        db.insert({'CallText': CallText, "ItemTitle": Title, 'AvgPrice': -1, "Time": time.time(), "Error": "Found 0 Items", "ErrorRevision": CurrentErrorRevision, "ItemLink": ItemLink, "Price":Price,'SearchedItems':[]})
+        DB.AddAvgDataBase({'CallText': CallText, "ItemTitle": Title, 'AvgPrice': -1, "Time": time.time(), "Error": "Found 0 Items", "ErrorRevision": CurrentErrorRevision, "ItemLink": ItemLink, "Price":Price,'SearchedItems':[]})
+        # db.insert({'CallText': CallText, "ItemTitle": Title, 'AvgPrice': -1, "Time": time.time(), "Error": "Found 0 Items", "ErrorRevision": CurrentErrorRevision, "ItemLink": ItemLink, "Price":Price,'SearchedItems':[]})
         dbErrors.insert({'CallText': CallText, "ItemTitle": Title, 'AvgPrice': -1, "Time": time.time(), "Error": "Found 0 Items", "ErrorRevision": CurrentErrorRevision, "ItemLink": ItemLink, "Price":Price, 'SearchKeywords':ErrorAppendSearchKeywords, "EndTime": EndTime,"ImageURL" : ImageURL})
         return -1,CallText,[]  # Failure, No Items Found
 
     if(Prices == []):
-        db.insert({'CallText': CallText, "ItemTitle": Title, 'AvgPrice': -1, "Time": time.time(), "Error": "Found Items but None Sold", "ErrorRevision": CurrentErrorRevision, "ItemLink": ItemLink, "Price":Price,'SearchedItems':[]})
+        DB.AddAvgDataBase({'CallText': CallText, "ItemTitle": Title, 'AvgPrice': -1, "Time": time.time(), "Error": "Found Items but None Sold", "ErrorRevision": CurrentErrorRevision, "ItemLink": ItemLink, "Price":Price,'SearchedItems':[]})
+        # db.insert({'CallText': CallText, "ItemTitle": Title, 'AvgPrice': -1, "Time": time.time(), "Error": "Found Items but None Sold", "ErrorRevision": CurrentErrorRevision, "ItemLink": ItemLink, "Price":Price,'SearchedItems':[]})
         dbErrors.insert({'CallText': CallText, "ItemTitle": Title, 'AvgPrice': -1, "Time": time.time(), "Error": "Found Items but None Sold", "ErrorRevision": CurrentErrorRevision, "ItemLink": ItemLink, "Price":Price, 'SearchKeywords':ErrorAppendSearchKeywords, "EndTime": EndTime,"ImageURL" : ImageURL})
         return -1,CallText,[]  # Failure, Items found but No Items Sold
 
     Average = statistics.mean(Prices)  # Calculate average price, put into data base
-    db.insert({'CallText': CallText, "ItemTitle": Title, 'AvgPrice': Average, "Time": time.time(), "ItemLink": ItemLink,'SearchedItems':SearchedItems, "ErrorRevision": CurrentErrorRevision})
+    DB.AddAvgDataBase({'CallText': CallText, "ItemTitle": Title, 'AvgPrice': Average, "Time": time.time(), "ItemLink": ItemLink,'SearchedItems':SearchedItems, "ErrorRevision": CurrentErrorRevision})
+    # db.insert({'CallText': CallText, "ItemTitle": Title, 'AvgPrice': Average, "Time": time.time(), "ItemLink": ItemLink,'SearchedItems':SearchedItems, "ErrorRevision": CurrentErrorRevision})
 
     return Average,CallText,SearchedItems  # Success, New average price found
 
