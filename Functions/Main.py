@@ -14,13 +14,17 @@ import json
 import DataBaseCustom as DB
 import threading
 
-Discount = .7  # Minimum percent of original price, avg of 10$ item will need to be below 7$ if .7 is used
-SpecificProductDiscount = 1  # Percent of origional price for items in specific item section
+SearchingFile = str(os.path.dirname(os.path.dirname(__file__))) + '/DataBase/Searching'
+with open(SearchingFile, 'r') as in_file:
+    SearchingFileData = json.load(in_file)
 
-SearchEverything = 0  # 0 If searching only auctions 1 if searching all listings
-ReuseSearch = 0  # Use data from previous search instead of generating new search items
-StoppingPrice = [50,6.0]  # [Auctions Only, Everything] Max price without shipping
-MaxCalls = 0  # Maximum calls per item search
+Discount = SearchingFileData["Discount"]  # Minimum percent of original price, avg of 10$ item will need to be below 7$ if .7 is used
+SpecificProductDiscount = SearchingFileData["SpecificProductDiscount"]  # Percent of origional price for items in specific item section
+
+SearchEverything = SearchingFileData["SearchEverything"]  # 0 If searching only auctions 1 if searching all listings
+ReuseSearch = SearchingFileData["ReuseSearch"]  # Use data from previous search instead of generating new search items
+StoppingPrice = SearchingFileData["StoppingPrice"]  # [Auctions Only, Everything] Max price without shipping
+MaxCalls = SearchingFileData["MaxCalls"]  # Maximum calls per item search
 
 EndingSoon = int(60*60*24*2.2)  # Unix time cutoff for item to be considered ending soon
 
@@ -30,9 +34,6 @@ if(SearchEverything == 1):  # If Searching everything then no limit on items end
     EndingSoon = int(60*60*24*32)
 
 # Grab search list from Searching file
-SearchingFile = str(os.path.dirname(os.path.dirname(__file__))) + '/DataBase/Searching'
-with open(SearchingFile, 'r') as in_file:
-    SearchingFileData = json.load(in_file)
 Searching = SearchingFileData["Searching"]
 SpecificProductSearch = SearchingFileData["SpecificProductSearch"]
 
