@@ -1,9 +1,10 @@
 import Ebay
 import Logs
-from tinydb import TinyDB
+# from tinydb import TinyDB
 import os
 import time
 import sys
+import DataBaseCustom as DB
 
 ########################################################################################################################
 # Search.py
@@ -73,11 +74,12 @@ def GenerateSearch(SearchString,StoppingPrice,AuctionsOnly):
 
 # New creates a new data base under the searches folder for the search data to be stored in
 def New():
-    path = os.path.dirname(os.path.dirname(__file__)) + "/DataBase/Searches/"
-    if not os.path.exists(path):
-        os.makedirs(path)
-
-    db = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/DataBase/Searches/" + str(time.time()))
+    DirectoryPath = os.path.dirname(os.path.dirname(__file__)) + "/DataBase/Searches/"
+    if not os.path.exists(DirectoryPath):
+        os.makedirs(DirectoryPath)
+    dbPath = os.path.dirname(os.path.dirname(__file__)) + "/DataBase/Searches/" + str(time.time())
+    DB.NewSearchesDataBase(dbPath)
+    # db = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/DataBase/Searches/" + str(time.time()))
 
 
 # Search searches the ebay api for items fitting the description
@@ -85,7 +87,7 @@ def New():
 # of the numbers
 # Success:
 # Failure:
-def Search(Keywords,AuctionOnly,SearchIndex,dbSearches):
+def Search(Keywords,AuctionOnly,SearchIndex,dbSearches=None):
 
     Data = {}  # Initilize data json data structure
     ItemCount = 0  # Item Count counts the total number of items
@@ -127,13 +129,17 @@ def Search(Keywords,AuctionOnly,SearchIndex,dbSearches):
                 Item['SearchKeywords'] = str(Keywords)
                 Data[ItemCount] = Item
 
-                Inserted.append(Item)  # Store item data in Inserted variable
+                # Inserted.append(Item)  # Store item data in Inserted variable
+                DB.AddSearchesDataBase(Item)
 
                 ItemCount = ItemCount + 1
 
             if (Count < 100):  # If a block is not full then all items in the block have been seen
                 break
 
-        dbSearches.insert_multiple(Inserted)  # Insert item data into data base
+        # dbSearches.insert_multiple(Inserted)  # Insert item data into data base
+
+    DB.PushSearchesDataBase()  # Saves searches
+    DB.PushCallDataBase()
 
     return Data

@@ -6,7 +6,7 @@ import webbrowser
 import os
 import json
 import Get
-from tinydb import TinyDB
+# from tinydb import TinyDB
 
 ########################################################################################################################
 # Display.py
@@ -60,9 +60,9 @@ ImageWidgets = []
 global MainWindow
 
 # Data bases that are used for cached searches
-AvgPriceDataBase1 = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/DataBase/LinkToAvgPrice")
-ErrorsDataBase1 = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/Logs/Errors")
-UPCDataBase1 = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/DataBase/LinkToUPC")
+# AvgPriceDataBase1 = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/DataBase/LinkToAvgPrice")
+# ErrorsDataBase1 = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/Logs/Errors")
+# UPCDataBase1 = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/DataBase/LinkToUPC")
 
 MaxCount = 0  # Contains the total item pages that are displayed
 
@@ -373,7 +373,7 @@ def Search(Title):
     ScrollFramePosition = [ScreenSize[0]/2-20,ScreenSize[1]-100,ScreenSize[0]/2+10,50]# Width,Height,X,Y
 
     # Search from cached or web
-    Prices, FinalSearchName, SearchedItems = Get.AvgPrice(None,Title,0,0,Title,0,AvgPriceDataBase1,ErrorsDataBase1,UPCDataBase1)
+    Prices, FinalSearchName, SearchedItems = Get.AvgPrice(None,Title,0,0,Title,0)
 
     FrameIndex = [str(a) for a in ImageWidgets]
     for ItemIndex in range(len(FrameIndex)):

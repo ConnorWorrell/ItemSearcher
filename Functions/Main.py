@@ -5,7 +5,7 @@ import Get
 import Mail
 import Display as Disp
 import os
-from tinydb import TinyDB
+# from tinydb import TinyDB
 import time
 import sys
 import datetime
@@ -18,7 +18,7 @@ Discount = .7  # Minimum percent of original price, avg of 10$ item will need to
 SpecificProductDiscount = 1  # Percent of origional price for items in specific item section
 
 SearchEverything = 0  # 0 If searching only auctions 1 if searching all listings
-ReuseSearch = 1  # Use data from previous search instead of generating new search items
+ReuseSearch = 0  # Use data from previous search instead of generating new search items
 StoppingPrice = [50,6.0]  # [Auctions Only, Everything] Max price without shipping
 MaxCalls = 0  # Maximum calls per item search
 
@@ -46,10 +46,10 @@ Display = []
 Quitting = False
 def CheckForSafeQuit():
     print("Starting Save Quit Listener")
+    global Quitting
     while Quitting == False:
         Input = input()  # If any input is given then set quitting global variable to true and stop thread
         print("Quitting")
-        global Quitting
         Quitting = True
         quit()
 
@@ -73,9 +73,9 @@ def TotalSearch(SearchingTitle,SearchNonAuctions):
     global Output
     global OutputSpecific
 
-    DBName = str(max([float(s.replace('.json', '')) for s in
-                      os.listdir(str(os.path.dirname(os.path.dirname(__file__))) + '/DataBase/Searches/')]))
-    dbSearches = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/DataBase/Searches/" + DBName)
+    # DBName = str(max([float(s.replace('.json', '')) for s in
+    #                   os.listdir(str(os.path.dirname(os.path.dirname(__file__))) + '/DataBase/Searches/')]))
+    # dbSearches = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/DataBase/Searches/" + DBName)
 
     for SearchingNonAuctions in range(SearchNonAuctions+1): # Runs once if only auctions and twice if everything
 
@@ -90,7 +90,7 @@ def TotalSearch(SearchingTitle,SearchNonAuctions):
 
         SearchList = Search.GenerateSearch(SearchingTitle, StoppingPrice, AuctionSearch)  # Generate search array
 
-        Search.Search(SearchingTitle, AuctionSearch, SearchList,dbSearches)  # Search items in search array
+        Search.Search(SearchingTitle, AuctionSearch, SearchList)  # Search items in search array
 
 
 # Analisis evaluates all items in Items List to see if they are deals or not
@@ -99,9 +99,9 @@ def Analisis(ItemsList):
     global MaxCalls
     driver = None
 
-    ShippingDataBase = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/DataBase/LinkToShipping")
-    AvgPriceDataBase = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/DataBase/LinkToAvgPrice")
-    ErrorsDataBase = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/Logs/Errors")
+    # ShippingDataBase = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/DataBase/LinkToShipping")
+    # AvgPriceDataBase = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/DataBase/LinkToAvgPrice")
+    # ErrorsDataBase = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/Logs/Errors")
     WebDriverPath = os.path.dirname(os.path.dirname(__file__)) + '/Drivers/chromedriver.exe'
 
     TotalCount = len(ItemsList)  # Total Count of items to search
@@ -168,7 +168,7 @@ def Analisis(ItemsList):
 
         # Get shipping on items where shipping changes for different places
         if ItemShippingType == 'Calculated' or ItemShippingType == 'CalculatedDomesticFlatInternational' or ItemShippingType == 'FreePickup':
-            ItemShipping,driver = Get.Shipping(ItemURL,driver,ShippingDataBase,WebDriverPath)
+            ItemShipping,driver = Get.Shipping(ItemURL,driver,WebDriverPath)
         else:
             try:
                 ItemShipping = ItemsList[Item]['shippingInfo'][0]['shippingServiceCost'][0]['__value__']
@@ -176,7 +176,7 @@ def Analisis(ItemsList):
                 continue
 
         global Lot
-        Prices,FinalSearchName,SearchedItems = Get.AvgPrice(ItemURL,ItemTitle,OutOfCalls,float(ItemPrice) + float(ItemShipping),ItemSearchKeywords,float(UnixEndingStamp),AvgPriceDataBase,ErrorsDataBase,ImageURL = ItemPicture)
+        Prices,FinalSearchName,SearchedItems = Get.AvgPrice(ItemURL,ItemTitle,OutOfCalls,float(ItemPrice) + float(ItemShipping),ItemSearchKeywords,float(UnixEndingStamp),ImageURL = ItemPicture)
 
         if('Multi Item Auction Found' in FinalSearchName):
             Info = [float(ItemPrice) + float(ItemShipping), str(ItemURL), str(False)]
@@ -226,9 +226,9 @@ if __name__ == "__main__":
     Logs.New()
     Ebay.New()
 
-    # DB.ClearErrorsDataBase()
-    dbErrors = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/Logs/Errors")
-    dbErrors.purge_tables()  # Reset Errors Data Base
+    DB.ClearErrorsDataBase()
+    # dbErrors = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/Logs/Errors")
+    # dbErrors.purge_tables()  # Reset Errors Data Base
 
     SearchText = Searching  # Data to search
     for i in SpecificProductSearch:  # Add all the Specific product search stuff to Seart Text
@@ -239,10 +239,13 @@ if __name__ == "__main__":
         for SearchingTitleText in SearchText:
             TotalSearch(SearchingTitleText,SearchEverything)
 
-    DBName = str(max([float(s.replace('.json', '')) for s in
-                      os.listdir(str(os.path.dirname(os.path.dirname(__file__))) + '/DataBase/Searches/')]))
-    dbSearches = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/DataBase/Searches/" + DBName)
-    Data = dbSearches.table("_default").all()
+    # DBName = str(max([float(s.replace('.json', '')) for s in
+    #                   os.listdir(str(os.path.dirname(os.path.dirname(__file__))) + '/DataBase/Searches/')]))
+    # dbSearches = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/DataBase/Searches/" + DBName)
+    # Data = dbSearches.table("_default").all()
+    TempVar = DB.AllSearchesDataBase()
+    Data = [TempVar[a] for a in TempVar.keys()]
+    # print(Data)
 
     Analisis(Data)  # Analise data
 
@@ -250,10 +253,11 @@ if __name__ == "__main__":
     OutputSpecific.sort()
 
     # Get all the errors into one variable
-    dbErrors = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/Logs/Errors")
-    dbErrorsTable = dbErrors.table().all()
-    # dbErrorsTable = DB.AllErrorsDataBase()
-    for a in range(len(dbErrorsTable)):
+    # dbErrors = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/Logs/Errors")
+    # dbErrorsTable = dbErrors.table().all()
+    dbErrorsTable = DB.AllErrorsDataBase()
+    # print(dbErrorsTable)
+    for a in dbErrorsTable.keys():
         try:
             dbErrorsTable[a]['Price']
         except:

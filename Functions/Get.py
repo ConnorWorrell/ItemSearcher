@@ -1,5 +1,5 @@
 import requests
-from tinydb import Query
+# from tinydb import Query
 import time
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -111,7 +111,7 @@ def UPC(ItemLink,UPCDataBase = None):
 # necessary to restart the browser every time
 # Success: Free Shipping : 0, Found Shipping Price: (float)
 # Failure: Generic Error : -1, check Logs for more information
-def Shipping(ItemLink,driver,ShippingDataBase,WebDriverPath):
+def Shipping(ItemLink,driver,WebDriverPath,ShippingDataBase = None):
     WaitTimeBetweenButtons = .1 # Wait time between character inserts when typing in zip code
     global ReceivingZipCode
     zipCode = ReceivingZipCode # Zip code of receiving location for calculating shipping
@@ -269,12 +269,12 @@ def Shipping(ItemLink,driver,ShippingDataBase,WebDriverPath):
 # Note: 3 identical sections of code that could be condensed
 # Success: (float), Found new avg price, Found cached avg price, Could not find new avg price but had old avg price
 # Failure: Multi Item Auction Predicted : -1, Out Of Calls : -2, No items found : -1, No items sold : -1
-def AvgPrice(ItemLink,Title,OutOfCalls,Price,ErrorAppendSearchKeywords,EndTime,AVGPriceDB,ErrorsDB,UPCDataBase=None,ImageURL = ""):
+def AvgPrice(ItemLink,Title,OutOfCalls,Price,ErrorAppendSearchKeywords,EndTime,ErrorsDB=None,AVGPriceDB=None,UPCDataBase=None,ImageURL = ""):
     CurrentErrorRevision = 4 # Stored in database incase new things need to be added
     Recalling = None
 
     # db = AVGPriceDB
-    dbErrors = ErrorsDB
+    # dbErrors = ErrorsDB
 
     # User = Query()
 
@@ -359,7 +359,7 @@ def AvgPrice(ItemLink,Title,OutOfCalls,Price,ErrorAppendSearchKeywords,EndTime,A
                 ErrorCode["ItemLink"] = ItemLink
                 ErrorCode["ImageURL"] = ImageURL
 
-                # DB.AddAvgDataBase(ErrorCode)
+                DB.AddErrorsDataBase(ErrorCode)
                 # dbErrors.insert(ErrorCode)
                 return Search[0]['AvgPrice'],CallText,Search[0]['SearchedItems']  # Success, returning previous Failure
 
@@ -507,13 +507,15 @@ def AvgPrice(ItemLink,Title,OutOfCalls,Price,ErrorAppendSearchKeywords,EndTime,A
     if Count == 0 and (Count1 == 0 and Count2 == 0):  # If no items were found using Title or UPC
         DB.AddAvgDataBase({'CallText': CallText, "ItemTitle": Title, 'AvgPrice': -1, "Time": time.time(), "Error": "Found 0 Items", "ErrorRevision": CurrentErrorRevision, "ItemLink": ItemLink, "Price":Price,'SearchedItems':[]})
         # db.insert({'CallText': CallText, "ItemTitle": Title, 'AvgPrice': -1, "Time": time.time(), "Error": "Found 0 Items", "ErrorRevision": CurrentErrorRevision, "ItemLink": ItemLink, "Price":Price,'SearchedItems':[]})
-        dbErrors.insert({'CallText': CallText, "ItemTitle": Title, 'AvgPrice': -1, "Time": time.time(), "Error": "Found 0 Items", "ErrorRevision": CurrentErrorRevision, "ItemLink": ItemLink, "Price":Price, 'SearchKeywords':ErrorAppendSearchKeywords, "EndTime": EndTime,"ImageURL" : ImageURL})
+        DB.AddErrorsDataBase({'CallText': CallText, "ItemTitle": Title, 'AvgPrice': -1, "Time": time.time(), "Error": "Found 0 Items", "ErrorRevision": CurrentErrorRevision, "ItemLink": ItemLink, "Price":Price, 'SearchKeywords':ErrorAppendSearchKeywords, "EndTime": EndTime,"ImageURL" : ImageURL})
+        # dbErrors.insert({'CallText': CallText, "ItemTitle": Title, 'AvgPrice': -1, "Time": time.time(), "Error": "Found 0 Items", "ErrorRevision": CurrentErrorRevision, "ItemLink": ItemLink, "Price":Price, 'SearchKeywords':ErrorAppendSearchKeywords, "EndTime": EndTime,"ImageURL" : ImageURL})
         return -1,CallText,[]  # Failure, No Items Found
 
     if(Prices == []):
         DB.AddAvgDataBase({'CallText': CallText, "ItemTitle": Title, 'AvgPrice': -1, "Time": time.time(), "Error": "Found Items but None Sold", "ErrorRevision": CurrentErrorRevision, "ItemLink": ItemLink, "Price":Price,'SearchedItems':[]})
         # db.insert({'CallText': CallText, "ItemTitle": Title, 'AvgPrice': -1, "Time": time.time(), "Error": "Found Items but None Sold", "ErrorRevision": CurrentErrorRevision, "ItemLink": ItemLink, "Price":Price,'SearchedItems':[]})
-        dbErrors.insert({'CallText': CallText, "ItemTitle": Title, 'AvgPrice': -1, "Time": time.time(), "Error": "Found Items but None Sold", "ErrorRevision": CurrentErrorRevision, "ItemLink": ItemLink, "Price":Price, 'SearchKeywords':ErrorAppendSearchKeywords, "EndTime": EndTime,"ImageURL" : ImageURL})
+        DB.AddErrorsDataBase({'CallText': CallText, "ItemTitle": Title, 'AvgPrice': -1, "Time": time.time(), "Error": "Found Items but None Sold", "ErrorRevision": CurrentErrorRevision, "ItemLink": ItemLink, "Price":Price, 'SearchKeywords':ErrorAppendSearchKeywords, "EndTime": EndTime,"ImageURL" : ImageURL})
+        # dbErrors.insert({'CallText': CallText, "ItemTitle": Title, 'AvgPrice': -1, "Time": time.time(), "Error": "Found Items but None Sold", "ErrorRevision": CurrentErrorRevision, "ItemLink": ItemLink, "Price":Price, 'SearchKeywords':ErrorAppendSearchKeywords, "EndTime": EndTime,"ImageURL" : ImageURL})
         return -1,CallText,[]  # Failure, Items found but No Items Sold
 
     Average = statistics.mean(Prices)  # Calculate average price, put into data base

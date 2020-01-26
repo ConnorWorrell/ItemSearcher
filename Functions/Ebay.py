@@ -3,7 +3,7 @@ import time
 import requests
 import json
 import Logs
-from tinydb import TinyDB, Query
+# from tinydb import TinyDB, Query
 from datetime import datetime
 from tinydb.operations import increment
 import DataBaseCustom as DB
@@ -59,14 +59,16 @@ def Call(Keywords,AuctionOnly,Page,MaxPrice,MinPrice,Present):
     if LogPosition == None: New()
 
     # Database where number of call are recorded
-    dbCallCount = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/DataBase/CallCount")
-    Search = Query()
+    # dbCallCount = TinyDB(os.path.dirname(os.path.dirname(__file__)) + "/DataBase/CallCount")
+    # Search = Query()
 
     try:  # Get previous call time from data base
-        CallTime = dbCallCount.table("_default").all()[len(dbCallCount.table("_default").all())-1]['Time']
+        TmpVar = DB.AllCallDataBase()
+        DataBase = [TmpVar[a] for a in TmpVar.keys()]
+        CallTime = DataBase[len(DataBase)-1]['Time']
     except:  # Unable to get call time from data base
         CurrentTime = int(time.mktime(datetime.now().timetuple()))
-        dbCallCount.insert({'Calls': 0, 'Time': CurrentTime})  # Add call time to data base
+        DB.AddCallDataBase({'Calls': 0, 'Time': CurrentTime})  # Add call time to data base
         CallTime = CurrentTime
 
     CurrentDateTime = int(time.mktime(datetime.now().timetuple()))  # Current time
@@ -76,7 +78,7 @@ def Call(Keywords,AuctionOnly,Page,MaxPrice,MinPrice,Present):
     if(CurrentDateTime > NewCallingPerioud):  # If we have passed time when calls reset then were in a new call region
         print("New Time Region")
         CurrentTime = int(time.mktime(datetime.now().timetuple()))
-        dbCallCount.insert({'Calls': 0, 'Time': CurrentTime})  # Insert new entry with no calls
+        DB.AddCallDataBase({'Calls': 0, 'Time': CurrentTime})  # Insert new entry with no calls
         CallTime = CurrentTime
 
     # Note calls reset 1am mtd, or 8am utc
@@ -129,7 +131,8 @@ def Call(Keywords,AuctionOnly,Page,MaxPrice,MinPrice,Present):
                 AuctionOnly) + " Present: " + str(Present) + " Between " + str(MinPrice) + " and " + str(
                 MaxPrice) + " at " + str(ReportSaveLocation))
 
-            dbCallCount.update(increment("Calls"), Search.Time == CallTime)  # Incriment Call Count
+            DB.IncrimentCallDataBase("Calls",{"Time":CallTime})
+            #dbCallCount.update(increment("Calls"), Search.Time == CallTime)  # Incriment Call Count
 
             return(report.json())  # Success
         except:

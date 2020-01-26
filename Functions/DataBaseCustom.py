@@ -6,22 +6,25 @@ UPCDataBasePath = os.path.dirname(os.path.dirname(__file__)) + "/DataBase/LinkTo
 ShippingDataBasePath = os.path.dirname(os.path.dirname(__file__)) + "/DataBase/LinkToShipping"
 AvgPriceDataBasePath = os.path.dirname(os.path.dirname(__file__)) + "/DataBase/LinkToAvgPrice"
 ErrorsDataBasePath = os.path.dirname(os.path.dirname(__file__)) + "/Logs/Errors"
-DisplayDataDataBasePath = os.path.dirname(os.path.dirname(__file__)) + "/DataBase/DisplayData.txt"
 CallCountDataBasePath = os.path.dirname(os.path.dirname(__file__)) + "/DataBase/CallCount"
+
+DBName = str(max([float(s.replace('.json', '')) for s in
+                      os.listdir(str(os.path.dirname(os.path.dirname(__file__))) + '/DataBase/Searches/')]))
+SearchesDataBasePath = os.path.dirname(os.path.dirname(__file__)) + "/DataBase/Searches/" + DBName
 
 UPCDataBase = {}
 ShippingDataBase = {}
 AvgPriceDataBase = {}
 ErrorsDataBase = {}
-DisplayDataDataBase = {}
 CallCountDataBase = {}
+SearchesDataBase = {}
 
 DatabaseWritesBeforePush = 100  # Writes between saving files
 DataBaseWrites = {}
 
 # Sets up proper variables for use in database stuff
 def Startup():
-    global UPCDataBase, ShippingDataBase, AvgPriceDataBase, ErrorsDataBase, DisplayDataDataBase, CallCountDataBase,DataBaseWrites,InitialDataBaseSizes
+    global UPCDataBase, ShippingDataBase, AvgPriceDataBase, ErrorsDataBase, CallCountDataBase,SearchesDataBase ,DataBaseWrites,InitialDataBaseSizes
 
     def Start(Path,DB):
         DataBaseWrites[Path] = 0  # Reset writes between saving files count
@@ -40,8 +43,8 @@ def Startup():
     ShippingDataBase = Start(ShippingDataBasePath, ShippingDataBase)
     AvgPriceDataBase = Start(AvgPriceDataBasePath, AvgPriceDataBase)
     ErrorsDataBase = Start(ErrorsDataBasePath, ErrorsDataBase)
-    DisplayDataDataBase = Start(DisplayDataDataBasePath, DisplayDataDataBase)
     CallCountDataBase = Start(CallCountDataBasePath, CallCountDataBase)
+    SearchesDataBase = Start(SearchesDataBasePath,SearchesDataBase)
 
     # Record initial database size, used to compare to end data base size at end of run
     InitialDataBaseSizes = [len(UPCDataBase["_default"].keys()),len(ShippingDataBase["_default"].keys()),len(AvgPriceDataBase["_default"].keys()),len(ErrorsDataBase["_default"].keys()),len(CallCountDataBase["_default"].keys())]
@@ -50,15 +53,15 @@ def Startup():
 
 # Called at the end of run, saves all database related things
 def End():
-    global UPCDataBase, ShippingDataBase, AvgPriceDataBase, ErrorsDataBase, DisplayDataDataBase, CallCountDataBase,DataBaseWrites,InitialDataBaseSizes
+    global UPCDataBase, ShippingDataBase, AvgPriceDataBase, ErrorsDataBase, CallCountDataBase,DataBaseWrites,InitialDataBaseSizes
 
     # Save databases, note that commented out databases are not currently being used and saving them would overwrite the actual TinyDB database
     PushUPCDataBase()
     PushAvgDataBase()
-    # PushCallDataBase()
-    # PushDisplayDataBase()
-    # PushErrorsDataBase()
+    PushCallDataBase()
+    PushErrorsDataBase()
     PushShippingDataBase()
+    PushSearchesDataBase()
 
     # Record size of database at end of run
     FinalDataBaseSizes = [len(UPCDataBase["_default"].keys()),len(ShippingDataBase["_default"].keys()),len(AvgPriceDataBase["_default"].keys()),len(ErrorsDataBase["_default"].keys()),len(CallCountDataBase["_default"].keys())]
@@ -92,14 +95,13 @@ def PushErrorsDataBase():
     global ErrorsDataBase
     Dump(ErrorsDataBasePath, ErrorsDataBase)
 
-def PushDisplayDataBase():
-    global DisplayDataDataBase
-    Dump(DisplayDataDataBasePath, DisplayDataDataBase)
-
 def PushCallDataBase():
     global CallCountDataBase
     Dump(CallCountDataBasePath, CallCountDataBase)
 
+def PushSearchesDataBase():
+    global SearchesDataBase,SearchesDataBasePath
+    Dump(SearchesDataBasePath, SearchesDataBase)
 
 # Add adds an item to a database
 def Add(Path,DB,Value):
@@ -131,13 +133,13 @@ def AddErrorsDataBase(Value):
     global ErrorsDataBase
     Add(ErrorsDataBasePath, ErrorsDataBase,Value)
 
-def AddDisplayDataBase(Value):
-    global DisplayDataDataBase
-    Add(DisplayDataDataBasePath, DisplayDataDataBase,Value)
-
 def AddCallDataBase(Value):
     global CallCountDataBase
     Add(CallCountDataBasePath, CallCountDataBase,Value)
+
+def AddSearchesDataBase(Value):
+    global SearchesDataBase,SearchesDataBasePath
+    Add(SearchesDataBasePath, SearchesDataBase,Value)
 
 
 # Find returns all items in the data base matching the Search Item dict
@@ -179,10 +181,6 @@ def FindErrorsDataBase(Value):
     global ErrorsDataBase
     return Find(ErrorsDataBasePath, ErrorsDataBase,Value)
 
-def FindDisplayDataBase(Value):
-    global DisplayDataDataBase
-    return Find(DisplayDataDataBasePath, DisplayDataDataBase,Value)
-
 def FindCallDataBase(Value):
     global CallCountDataBase
     return Find(CallCountDataBasePath, CallCountDataBase,Value)
@@ -214,10 +212,6 @@ def ClearAvgDataBase():
 def ClearErrorsDataBase():
     global ErrorsDataBase
     ErrorsDataBase = Clear(ErrorsDataBasePath, ErrorsDataBase)
-
-def ClearDisplayDataBase():
-    global DisplayDataDataBase
-    DisplayDataDataBase = Clear(DisplayDataDataBasePath, DisplayDataDataBase)
 
 def ClearCallDataBase():
     global CallCountDataBase
@@ -280,11 +274,6 @@ def RemoveErrorsDataBase(RemoveObject):
     Success, ErrorsDataBase =  Remove(ErrorsDataBasePath, ErrorsDataBase,RemoveObject)
     return Success
 
-def RemoveDisplayDataBase(RemoveObject):
-    global DisplayDataDataBase
-    Success, DisplayDataDataBase =  Remove(DisplayDataDataBasePath, DisplayDataDataBase,RemoveObject)
-    return Success
-
 def RemoveCallDataBase(RemoveObject):
     global CallCountDataBase
     Success, CallCountDataBase =  Remove(CallCountDataBasePath, CallCountDataBase,RemoveObject)
@@ -311,13 +300,13 @@ def AllErrorsDataBase():
     global ErrorsDataBase
     return All(ErrorsDataBasePath, ErrorsDataBase)
 
-def AllDisplayDataBase():
-    global DisplayDataDataBase
-    return All(DisplayDataDataBasePath, DisplayDataDataBase)
-
 def AllCallDataBase():
     global CallCountDataBase
     return All(CallCountDataBasePath, CallCountDataBase)
+
+def AllSearchesDataBase():
+    global SearchesDataBase,SearchesDataBasePath
+    return All(SearchesDataBasePath,SearchesDataBase)
 
 
 # Incriment incriments the first value that is located by searchItem
@@ -365,13 +354,18 @@ def IncrimentErrorsDataBase(ValueToIncriment,SearchItem):
     global ErrorsDataBase
     ErrorsDataBase = Incriment(ErrorsDataBasePath, ErrorsDataBase,ValueToIncriment,SearchItem)
 
-def IncrimentDisplayDataBase(ValueToIncriment,SearchItem):
-    global DisplayDataDataBase
-    DisplayDataDataBase = Incriment(DisplayDataDataBasePath, DisplayDataDataBase,ValueToIncriment,SearchItem)
-
 def IncrimentCallDataBase(ValueToIncriment,SearchItem):
     global CallCountDataBase
     CallCountDataBase = Incriment(CallCountDataBasePath, CallCountDataBase,ValueToIncriment,SearchItem)
+
+
+def NewSearchesDataBase(Path):
+    global SearchesDataBase,SearchesDataBasePath
+    DataBaseWrites[Path] = 0
+    SearchesDataBasePath = Path
+    SearchesDataBase = {"_default":{}}
+    PushSearchesDataBase()
+
 
 # When program stops save all data
 @atexit.register
