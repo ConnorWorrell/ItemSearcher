@@ -15,10 +15,10 @@ import DataBaseCustom as DB
 import threading
 
 Discount = .7  # Minimum percent of original price, avg of 10$ item will need to be below 7$ if .7 is used
-SpecificProductDiscount = 2  # Percent of origional price for items in specific item section
+SpecificProductDiscount = 1  # Percent of origional price for items in specific item section
 
 SearchEverything = 0  # 0 If searching only auctions 1 if searching all listings
-ReuseSearch = 0  # Use data from previous search instead of generating new search items
+ReuseSearch = 1  # Use data from previous search instead of generating new search items
 StoppingPrice = [50,6.0]  # [Auctions Only, Everything] Max price without shipping
 MaxCalls = 0  # Maximum calls per item search
 
@@ -63,6 +63,9 @@ def AddToGUI(Name,SearchName,Price,AvgPrice,ImageURL,PageURL,ComparisonData):
     AddingData = [Name[1] if len(Name) == 1 else Name,SearchName[1] if len(SearchName) == 1 else SearchName,Price,AvgPrice,ImageURL,PageURL,ComparisonData]
     if(AddingData[0:2] not in [a[0:2] for a in Display]):
         Display.append(AddingData)
+    else:
+        pass
+        # print("Duplicate Display Attempt " + str(AddingData))
 
 
 # Total Search searches everything in the Searching Title variable
