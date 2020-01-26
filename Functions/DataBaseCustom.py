@@ -346,6 +346,8 @@ def Incriment(Path,DB,ValueToIncriment,SearchItem):
         DataBaseWrites[Path] = 0
         Dump(Path, DB)
 
+    return DB
+
 # Incriment for all databases
 def IncrimentUPCDataBase(ValueToIncriment,SearchItem):
     global UPCDataBase
