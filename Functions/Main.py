@@ -47,13 +47,13 @@ Quitting = False
 def CheckForSafeQuit():
     print("Starting Save Quit Listener")
     while True:
-        Input = input()
+        Input = input()  # If any input is given then set quitting global variable to true and stop thread
         print("Quitting")
         global Quitting
         Quitting = True
         quit()
 
-QuitThread = threading.Thread(target=CheckForSafeQuit)
+QuitThread = threading.Thread(target=CheckForSafeQuit)  # Start safe quitting thread
 QuitThread.start()
 
 # AddToGUI adds items to the Display global variable in the correct format for the GUI to display later
@@ -80,7 +80,7 @@ def TotalSearch(SearchingTitle,SearchNonAuctions):
     for SearchingNonAuctions in range(SearchNonAuctions+1): # Runs once if only auctions and twice if everything
 
         global Quitting
-        if (Quitting):
+        if (Quitting):  # Check if save quitting flag is given and stop execution
             quit()
 
         if SearchingNonAuctions == 0:  # If Searching auctions
@@ -118,7 +118,7 @@ def Analisis(ItemsList):
     for Item in range(CallCount):  # For every item
 
         global Quitting
-        if(Quitting):
+        if(Quitting):  # Check if save quitting flag is given and stop execution
             quit()
 
         CycleTime = time.time() - LastCycle  # Calculate time it took for last item to be analized
