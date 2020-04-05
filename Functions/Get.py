@@ -545,6 +545,7 @@ def TitleToSearch (InputTitle,URL=None):
 
     # print(EditedTitle)
 
+    # Chars to remove everything between
     for Brackets in [["(",")"],["[","]"],["{","}"]]:
         SearchToIndex = 0
         for i in range(min(EditedTitle.count(Brackets[0]),EditedTitle.count(Brackets[1]))):
@@ -560,7 +561,7 @@ def TitleToSearch (InputTitle,URL=None):
 
                     # print(Descriptors)
 
-                    EditedTitle = EditedTitle[0:StartIndex-1]
+                    EditedTitle = EditedTitle[0:StartIndex]
                     break
         if Brackets[0] in EditedTitle and not Brackets[1] in EditedTitle:
             StartIndex = EditedTitle.index(Brackets[0])
@@ -570,10 +571,12 @@ def TitleToSearch (InputTitle,URL=None):
     # print(EditedTitle)
     # print(Descriptors)
 
-    for Replace in [['&','and']]:
+    # Keys to replace
+    for Replace in [['&','and'],['blue','blu']]:
         if(Replace[0] in EditedTitle):
             EditedTitle=EditedTitle.replace(Replace[0],Replace[1])
 
+    #Multi Item Keys
     MultiItemKeywords = [['sets'], ['vol', '#', 'and', 'vol', '#'], ['#', 'and', '#'],
                          ['collection', '#', '#'], ['set', 'of', '#'], ['seasons', '#', '#'],['vol','#','#'],['vol','#','#','#'],['vol','#','#','#','#'],['vol','#','#','#','#','#'],['vol','#','#','#','#','#','#'],['vol','#','#','#','#','#','#','#'],
                          ['seasons', '#', 'and', '#'], ['seasons'], ['bundle'], ['films'],['volumes'],['manga','+','anime'],
@@ -602,12 +605,13 @@ def TitleToSearch (InputTitle,URL=None):
 
     # print(EditedTitle)
 
+    # Keys to remove in general
     DescriptiveWords = [['part','#'],['ovas','and','movie'],['anime','and','ova'],["limited","edition",'special','cd'],["limited","edition"],['dvd','collection'],['blu','ray','and','dvd'],['bluray','and','dvd'],['dvd','and','blu','ray'],['-vol','#','dvd','set'],['dvd','and','bluray'],['-vol','#','dvd','box','set'],
                         ['first','season','#'],['season','#'],['complete','#','dvd','series'],["collector's",'box'],['complete','dvd','set'],['dvd','set'],['bonus','dvd'],['dvd','feature'],['-vol','#','dvd','set'],['-vol','#','dvd'],['dvd'],["dub",'and','sub'],['sub','and','dub'],['dub'],['sub'],['subs'],['subtitle'],['dubs'],
-                        ['the','complete','series'],
+                        ['the','complete','series'],['series','one'],
                         ['complete','series','collection'],['complete','series','boxset'],['complete','series'],['complete','set'],
                         ['sentai','filmworks'],["english"],["widescreen","edition"],['classic'],['like','new'],['used'],["brand","new"],["new"],["sealed"],['dubbed'],
-                        ['subbed'],["region","#"],['anime','legends'],['complete','anime','series'],['anime','works'],["anime"],['dual','movie'],["-the","movie"],["blu","ray","combo","pack","with","slipcover"],['on','#','blu','ray'],['on','#','bluray'],['on','bluray'],['on','blu','ray'],['bluray','set'],['blu','ray','set'],['-vol','#','blu','ray'],
+                        ['subbed'],["region","#"],['anime','legends'],['complete','anime','series'],['anime','series'],['anime','works'],['good','anime'],["anime"],['dual','movie'],["-the","movie"],["blu","ray","combo","pack","with","slipcover"],['on','#','blu','ray'],['on','#','bluray'],['on','bluray'],['on','blu','ray'],['bluray','set'],['blu','ray','set'],['-vol','#','blu','ray'],
                         ['blu','ray','collection'],['bluray','collection'],['blu','ray','w','slipcover'],['bluray','w','slipcover'],["bluray"],["blu","ray"],
                         ['#','disc','set'],["#",'disc'],["#",'discs'],['rene','laloux'],['combo','pack'],['with','slipcover'],['matt','groening'],['fox','animated','series'],['limited','box','set'],['box','set'],
                         ['boxed','set'],['the','complete','collection'],['the','complete'],['complete','collection'],['sd'],['comp'],['feature','film'],['no','digital','code'],['digital','code'],['digital'],['ultra','hd'],['hd'],['tvma'],['unopened'],
@@ -618,7 +622,8 @@ def TitleToSearch (InputTitle,URL=None):
                         ['essential','collection','#'],['essential','collection'],['cartoon'],['pioneer'],['le'],
                         ['dts'],['orig'],['vg+'],['#>1500'],['e1','#'],['#','bd','disk'],['tv','series'],['tv'],['import'],['with','nendoroids','and','extras'],['with','dendoroids'],['with','extras'],['premium',"collector's",'edition'],['original','series'],
                         ['dream','works' ,"animation's"],['dreamworks','animation'],['-the','animation'],['juni','nishimura'],['with','all','promo','cells'],['korea'],['full','slip','keep','case'],['disney',"-animation","-collection"],['aniv','edition'],['anniversary','edition'],['anniv','edition'],
-                        ['sci','fi'],['fantasy'],['drama'],['thriller'],['clamp'],["dvd's",'#','#','#'],["dvd's",'#','#'],["dvd's",'#'],["#","#"],['with'],['ova'],['never','opened'],['no','scraches']]
+                        ['sci','fi'],['fantasy'],['drama'],['thriller'],['clamp'],["dvd's",'#','#','#'],["dvd's",'#','#'],["dvd's",'#'],["#","#"],['with'],['ova'],['never','opened'],['no','scraches'],['blu'],['rated','pg'],['rated','g'],['rated','r'],['rated'],['vintage'],['great','story'],['on'],['by'],['aardman'],['video'],['eng'],['lot'],['extras'],
+                        ['ad','vision'],['collectible']]
 
     for Word in DescriptiveWords:
         for EditedTitleIndex in range(len(EditedTitle)-len(Word)+1):
@@ -654,16 +659,12 @@ def TitleToSearch (InputTitle,URL=None):
             EditedTitle.pop(i-RemovalCount)
             RemovalCount = RemovalCount + 1
 
-    for WordFollowedByNumber in ['season','vol']:
-        for Descript in Descriptors:
-            # print(Descriptors)
-            Item = Descript.split(" ")
-            if(WordFollowedByNumber in Item and len(Item) > Item.index(WordFollowedByNumber)+1 and Item[Item.index(WordFollowedByNumber)+1].isdigit()):
-                EditedTitle.append(" ".join([Item[Item.index(WordFollowedByNumber)], Item[Item.index(WordFollowedByNumber)+1]]))
+
 
     DescriptorsStr = Descriptors
     DescriptorsStr = " ".join(DescriptorsStr).split(" ")
-    for WordSet in [['complete','series'],['platinum','edition'],['complete','collection'],['limited','edition'],['the','complete','box','set'],['complete','box','set']]:
+    CompleteFound = 0
+    for WordSet in [['complete'],['complete','series'],['platinum','edition'],['complete','collection'],['limited','edition'],['the','complete','box','set'],['complete','box','set'],['box','set']]:
         Good = 0
         for Word in WordSet:
             # print(Word + "  |  " + str(DescriptorsStr))
@@ -671,7 +672,16 @@ def TitleToSearch (InputTitle,URL=None):
                 Good = Good + 1
         if(Good >= len(WordSet)):
             EditedTitle.append(" ".join(WordSet))
+            CompleteFound = 1
             break
+
+    if(CompleteFound == 0):
+        for WordFollowedByNumber in ['season','vol']:
+            for Descript in Descriptors:
+                # print(Descriptors)
+                Item = Descript.split(" ")
+                if(WordFollowedByNumber in Item and len(Item) > Item.index(WordFollowedByNumber)+1 and Item[Item.index(WordFollowedByNumber)+1].isdigit()):
+                    EditedTitle.append(" ".join([Item[Item.index(WordFollowedByNumber)], Item[Item.index(WordFollowedByNumber)+1]]))
 
     # if('Hataraki Man complete collection bluray, 11 SD anime episodes on 1 blu ray NEW!!' in InputTitle):
     #     quit()

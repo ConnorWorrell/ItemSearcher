@@ -46,15 +46,25 @@ Display = []
 
 Quitting = False
 def CheckForSafeQuit():
+    import threading
     print("Starting Save Quit Listener")
     global Quitting
+    Input = ""
+    t = threading.Thread(target=GetInput,daemon=True)
+    t.start()
     while Quitting == False:
-        Input = input()  # If any input is given then set quitting global variable to true and stop thread
-        print("Quitting")
-        Quitting = True
-        quit()
+        time.sleep(5)
+    print("Quitting")
+    Quitting = True
+    t.join()
+    quit()
 
-QuitThread = threading.Thread(target=CheckForSafeQuit)  # Start safe quitting thread
+def GetInput():
+    Input = input()
+    global Quitting
+    Quitting = True
+
+QuitThread = threading.Thread(target=CheckForSafeQuit,daemon=True)  # Start safe quitting thread
 QuitThread.start()
 
 # AddToGUI adds items to the Display global variable in the correct format for the GUI to display later
@@ -179,7 +189,7 @@ def Analisis(ItemsList):
         global Lot
         Prices,FinalSearchName,SearchedItems = Get.AvgPrice(ItemURL,ItemTitle,OutOfCalls,float(ItemPrice) + float(ItemShipping),ItemSearchKeywords,float(UnixEndingStamp),ImageURL = ItemPicture)
 
-        if('Multi Item Auction Found' in FinalSearchName):
+        if('Multi Item Auction Found' in FinalSearchName and UnixEndingStamp < time.time()+EndingSoon):
             Info = [float(ItemPrice) + float(ItemShipping), str(ItemURL), str(False)]
             Lot.append(Info)  # Store item info in Lot variable and in GUI
             Logs.Write("Found Lot Item: " + str(Info))
@@ -265,7 +275,7 @@ if __name__ == "__main__":
             print(dbErrorsTable[a])
 
         if(dbErrorsTable[a]["EndTime"] < time.time()+EndingSoon and dbErrorsTable[a]["EndTime"] > time.time()):# + 60*60*17):
-            print(dbErrorsTable[a]["EndTime"])
+            # print(dbErrorsTable[a]["EndTime"])
             Errors.append([dbErrorsTable[a]['Price'],str(dbErrorsTable[a]['Error']) + " " + str(dbErrorsTable[a]['ItemLink']) + " " + str([dbErrorsTable[a]['ItemTitle']]) + " " + str([dbErrorsTable[a]['CallText']]) + str(dbErrorsTable[a]["EndTime"]) + " | " + str(dbErrorsTable[a]['SearchKeywords'])])
             AddToGUI(dbErrorsTable[a]['ItemTitle'],dbErrorsTable[a]['CallText'],dbErrorsTable[a]['Price'],str(dbErrorsTable[a]['Error']),str(dbErrorsTable[a]['ImageURL']),str(dbErrorsTable[a]['ItemLink']),[])
 
@@ -309,3 +319,5 @@ if __name__ == "__main__":
 
     print("Starting Display")
     Disp.Startup(Display)  # Start GUI
+
+    quit()

@@ -22,9 +22,13 @@ SearchesDataBase = {}
 DatabaseWritesBeforePush = 100  # Writes between saving files
 DataBaseWrites = {}
 
+DataBaseStarted = False
+
 # Sets up proper variables for use in database stuff
 def Startup():
-    global UPCDataBase, ShippingDataBase, AvgPriceDataBase, ErrorsDataBase, CallCountDataBase,SearchesDataBase ,DataBaseWrites,InitialDataBaseSizes
+    global UPCDataBase, ShippingDataBase, AvgPriceDataBase, ErrorsDataBase, CallCountDataBase,SearchesDataBase ,DataBaseWrites,InitialDataBaseSizes,DataBaseStarted
+
+    DataBaseStarted = True
 
     def Start(Path,DB):
         DataBaseWrites[Path] = 0  # Reset writes between saving files count
@@ -370,7 +374,9 @@ def NewSearchesDataBase(Path):
 # When program stops save all data
 @atexit.register
 def OnExit():
-    End()  # Saves all data
+    global DataBaseStarted
+    if(DataBaseStarted):
+        End()  # Saves all data
 
 # Tests database write speed
 def Test():
